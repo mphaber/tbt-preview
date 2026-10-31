@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Town by Town icon">
+  <rect width="512" height="512" fill="#f3ead8"/>
+  <g transform="translate(56,56) scale(2.6316)">
+    <rect x="2" y="2" width="148" height="148" rx="6" fill="#fff8ea" stroke="#b3402e" stroke-width="3" stroke-dasharray="7 5"/>
+    <rect x="14" y="14" width="124" height="124" fill="#bcd9ea"/>
+    <circle cx="38" cy="38" r="11" fill="#f4c542"/>
+    <path d="M14 82 L44 58 L70 74 L98 54 L138 76 V138 H14 Z" fill="#87997a"/>
+    <path d="M14 96 L138 88 V138 H14 Z" fill="#7d9b76"/>
+    <path d="M14 138 C 44 126, 60 122, 80 118 C 96 115, 106 114, 118 112" fill="none" stroke="#f6e7c8" stroke-width="8" stroke-linecap="round"/>
+    <path d="M14 138 C 44 126, 60 122, 80 118 C 96 115, 106 114, 118 112" fill="none" stroke="#b3402e" stroke-width="2.2" stroke-dasharray="6 6" stroke-linecap="round"/>
+    <g fill="#7a5c3d"><rect x="92" y="100" width="9" height="8"/><rect x="103" y="97" width="11" height="11"/></g>
+    <path d="M90 100 L96 94 L103 100 Z" fill="#4c3a26"/>
+    <path d="M101 97 L108 90 L116 97 Z" fill="#4c3a26"/>
+    <path d="M126 70 c-8 0 -13 5.4 -13 11 c0 8.5 13 19 13 19 c0 0 13 -10.5 13 -19 c0 -5.6 -5 -11 -13 -11 Z" fill="#b3402e"/>
+    <circle cx="126" cy="81" r="4.6" fill="#fff8ea"/>
+  </g>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 200" role="img" aria-label="Town by Town logo">
+  <rect width="560" height="200" fill="#f3ead8"/>
+  <!-- postage stamp mark: the road stays in the valley -->
+  <g transform="translate(24,24)">
+    <rect x="0" y="0" width="152" height="152" rx="6" fill="#fff8ea" stroke="#b3402e" stroke-width="3" stroke-dasharray="7 5"/>
+    <rect x="12" y="12" width="128" height="128" fill="#bcd9ea"/>
+    <circle cx="36" cy="36" r="12" fill="#f4c542"/>
+    <path d="M12 84 L44 58 L72 76 L102 54 L140 78 V140 H12 Z" fill="#87997a"/>
+    <path d="M12 100 L140 92 V140 H12 Z" fill="#7d9b76"/>
+    <path d="M12 140 C 44 128, 62 124, 84 120 C 100 117, 110 116, 122 114" fill="none" stroke="#f6e7c8" stroke-width="8" stroke-linecap="round"/>
+    <path d="M12 140 C 44 128, 62 124, 84 120 C 100 117, 110 116, 122 114" fill="none" stroke="#b3402e" stroke-width="2.2" stroke-dasharray="6 6" stroke-linecap="round"/>
+    <g fill="#7a5c3d">
+      <rect x="94" y="102" width="10" height="9"/>
+      <rect x="106" y="99" width="12" height="12"/>
+    </g>
+    <path d="M92 102 L99 96 L106 102 Z" fill="#4c3a26"/>
+    <path d="M104 99 L112 92 L120 99 Z" fill="#4c3a26"/>
+    <path d="M128 72 c-8 0 -13 5.4 -13 11 c0 8.5 13 19 13 19 c0 0 13 -10.5 13 -19 c0 -5.6 -5 -11 -13 -11 Z" fill="#b3402e"/>
+    <circle cx="128" cy="83" r="4.6" fill="#fff8ea"/>
+  </g>
+  <!-- wordmark -->
+  <text x="204" y="90" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="bold" fill="#1f3d2b">Town by Town</text>
+  <text x="206" y="124" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-style="italic" fill="#7a6748">A roadtrip in postcards. Real roads, real weather.</text>
+  <text x="206" y="152" font-family="Georgia, 'Times New Roman', serif" font-size="11" letter-spacing="2" fill="#b3402e">A GAME BY REAL SPARKS</text>
+</svg>

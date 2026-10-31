@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Town by Town</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f3d2b">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{
+    --ink:#24312a; --paper:#f7f2e7; --card:#fffdf7; --line:#d9cfb8;
+    --green:#2e6b4f; --green-dark:#1f4d38; --gold:#c99a2e; --red:#b3402e;
+    --sky:#7fb2d9; --muted:#6b7263;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:var(--paper); color:var(--ink); font-size:17px; line-height:1.45;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:14px 14px 30px;}
+  header.top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:4px 0 10px;}
+  h1{font-size:26px; margin:0; letter-spacing:.2px;}
+  .badge{font-size:12px; font-weight:700; color:var(--green-dark); border:1.5px solid var(--green);
+    border-radius:999px; padding:4px 10px; white-space:nowrap; background:#eef5ee;}
+  .card{background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:14px; margin:0 0 12px;
+    box-shadow:0 1px 2px rgba(36,49,42,.06);}
+  .resources{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+  .res{background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:9px 10px;}
+  .res .label{font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
+  .res .value{font-size:22px; font-weight:800;}
+  .bar{height:8px; border-radius:99px; background:#e9e2cf; margin-top:5px; overflow:hidden;}
+  .bar > div{height:100%; border-radius:99px; background:var(--green);}
+  .bar.low > div{background:var(--red);}
+  h2{font-size:20px; margin:2px 0 8px;}
+  h3{font-size:16px; margin:0 0 6px;}
+  p{margin:0 0 9px;}
+  .small{font-size:14px; color:var(--muted);}
+  .town-note{font-size:15px;}
+  svg.map{width:100%; height:auto; display:block;}
+  .maplabel{font-size:11px; font-weight:700; fill:var(--ink);}
+  .maplabel.dim{fill:var(--muted); font-weight:600;}
+  button.choice{
+    display:block; width:100%; text-align:left; min-height:56px; padding:12px 14px; margin:0 0 10px;
+    font-size:17px; font-weight:700; color:var(--ink); background:#f2ead6; border:2px solid var(--green);
+    border-radius:14px; cursor:pointer;
+  }
+  button.choice:active{transform:scale(.99);}
+  button.choice .sub{display:block; font-size:14px; font-weight:500; color:var(--muted); margin-top:3px;}
+  button.choice:disabled{opacity:.45; border-color:var(--line); cursor:default;}
+  button.choice.primary{background:var(--green); color:#fff; border-color:var(--green-dark);}
+  button.choice.primary .sub{color:#dcebe2;}
+  button.plain{
+    display:inline-block; min-height:52px; padding:10px 18px; font-size:16px; font-weight:700;
+    background:transparent; color:var(--green-dark); border:2px solid var(--green); border-radius:12px; cursor:pointer;
+  }
+  .weather-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center; margin-top:8px;}
+  .weather-grid .cell{background:#eef3f7; border-radius:10px; padding:8px 4px;}
+  .weather-grid .cell .v{font-size:18px; font-weight:800;}
+  .weather-grid .cell .k{font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase;}
+  .eventbox{background:#fdf3d8; border:1.5px solid var(--gold); border-radius:12px; padding:11px 12px; margin:0 0 10px;}
+  .eventbox.good{background:#e9f4ea; border-color:var(--green);}
+  .log{list-style:none; margin:0; padding:0;}
+  .log li{padding:7px 0; border-bottom:1px solid #eee5cf; font-size:15px;}
+  .log li:last-child{border-bottom:none;}
+  .result{text-align:center; padding:10px 4px;}
+  .result .big{font-size:30px; font-weight:900; margin:4px 0 8px;}
+  footer.site{margin-top:18px; text-align:center; font-size:13.5px; color:var(--muted);}
+  .rowbtns{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;}
+  .pulse{animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  /* The mix: postcard framing around richer town cards (Matthew, Oct 31, 2026). */
+  body{background:#eadfc6; background-image:radial-gradient(#ddcda6 1px, transparent 1px); background-size:22px 22px;}
+  h1, h2{font-family:Georgia, 'Times New Roman', serif;}
+  .card{border:2px solid #c9b384;}
+  .mapcard{position:relative; overflow:hidden;}
+  .stampdeco{position:absolute; top:10px; right:10px; width:52px; height:62px; background:#f6e7c8; border:2px dashed #b3402e;
+    border-radius:4px; text-align:center; font-size:9.5px; font-weight:800; color:#b3402e; padding-top:6px; z-index:2;}
+  .stampdeco .big{font-size:20px; line-height:1.1;}
+  .postmark{position:absolute; top:14px; right:52px; width:58px; height:58px; border:2px solid rgba(70,90,140,.4); border-radius:50%;
+    color:rgba(70,90,140,.55); font-size:8px; font-weight:700; text-align:center; padding-top:15px; transform:rotate(-13deg); z-index:2;
+    background:rgba(253,246,227,.35);}
+  .townhead{background:linear-gradient(120deg,#2e6b4f,#4b7d43); color:#fff; border-radius:12px; padding:13px 14px; margin:-4px -4px 10px;}
+  .townhead h2{margin:0; color:#fff;}
+  .townhead p{margin:3px 0 0; font-size:13.5px; opacity:.93;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 10px;}
+  .fchip{background:#eef3f7; border-radius:999px; padding:5px 10px; font-size:12.5px; font-weight:700; color:#33506b;}
+  .fchip.wx{background:#fdf3d8; color:#8a5a14;}
+  button.act{display:flex; gap:11px; align-items:flex-start; background:#fbf8ef;}
+  button.act .ic{font-size:24px; line-height:1.25;}
+  button.act .tx{flex:1;}
+  button.act .tag{margin-left:auto; text-align:right; font-weight:800; font-size:14.5px; color:var(--green-dark); white-space:nowrap;}
+  button.act .tag span{display:block; font-weight:600; font-size:12.5px; color:var(--muted);}
+  button.act.primary{background:var(--green);}
+  button.act.primary .tag, button.act.primary .tag span{color:#dcebe2;}
+  .tipbox{background:#e9f4ea; border-radius:10px; padding:9px 11px; font-size:13.5px; margin-top:2px;}
+  .wxnote{background:#fffbe8; border:1.5px solid #d8c48f; border-radius:8px; padding:10px 12px; transform:rotate(-.5deg);
+    box-shadow:0 2px 6px rgba(90,70,30,.15); margin:0 0 6px;}
+  .album{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .pcard{border-radius:8px; padding:8px 9px; min-height:74px; position:relative;}
+  .pcard.got{background:#fdf6e3; border:2px solid #c9b384; box-shadow:0 1px 3px rgba(90,70,30,.18);}
+  .pcard.miss{border:1.5px dashed #c9b384; opacity:.5;}
+  .pcard .nm{font-family:Georgia,'Times New Roman',serif; font-weight:800; font-size:13.5px; line-height:1.2;}
+  .pcard .tg{font-size:10.5px; color:var(--muted); margin-top:2px; line-height:1.25;}
+  .pcard .when{font-size:10px; font-weight:800; color:#b3402e; letter-spacing:.4px; text-transform:uppercase;}
+  .pcard svg.scene{width:100%; height:auto; display:block; border-radius:5px; margin-bottom:5px;}
+  .stampdot{display:inline-block; width:11px; height:11px; border:2px solid rgba(179,64,46,.75); border-radius:50%; margin:3px 3px 0 0;}
+  .setrow{display:flex; align-items:center; gap:10px; margin:10px 0;}
+  .setrow label{flex:0 0 118px; font-weight:700; font-size:15px;}
+  .setrow input[type=range]{flex:1; min-height:44px; accent-color:var(--green);}
+  .setrow .pct{flex:0 0 44px; text-align:right; font-weight:800;}
+  .fldlabel{font-weight:800; font-size:13px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin:12px 0 4px;}
+  .txtin{width:100%; min-height:52px; font-size:17px; padding:10px 12px; border:2px solid var(--line); border-radius:12px; background:#fff; color:var(--ink);}
+  .chiprow{display:flex; gap:8px; flex-wrap:wrap; margin:4px 0 6px;}
+  .chipbtn{min-height:48px; padding:9px 16px; font-size:16px; font-weight:700; background:#f2ead6; color:var(--ink); border:2px solid var(--green); border-radius:999px; cursor:pointer;}
+  .chipbtn.sel{background:var(--green); color:#fff; border-color:var(--green-dark);}
+  .choice.sel{border-color:var(--green-dark); background:#eef3df;}
+  .visits{font-size:10.5px; color:#b3402e; font-weight:700; margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Town by Town</h1>
+    <span class="badge">Private prototype</span>
+  </header>
+  <div id="app"></div>
+  <footer class="site">Town by Town / Created by Matthew Haber / © 2026 Real Sparks. All rights reserved.</footer>
+</div>
+<script>
+"use strict";
+/* Town by Town (formerly Roadtrip Roguelike) prototype. Staging only, private, unlisted.
+   Multiple independent routes that can also chain into one journey
+   (Matthew, Oct 31, 2026: both). Real weather via Open-Meteo (free,
+   no key), shown before the transport choice, with a seeded fallback
+   when the network or the service is unavailable. */
+</script>
+<script>
+"use strict";
+const SAVE_KEY = "roadtrip-roguelike-v1";
+const ROUTE_BB_TOWNS = [
+  { name:"Boston", state:"MA", lat:42.3601, lon:-71.0589, bus:true,
+    note:"A port city on Massachusetts Bay, in the homeland of the Massachusett people. Some of the oldest streets in the country run through neighborhoods built by generations of newcomers.",
+    job:null, visit:null },
+  { name:"Lowell", state:"MA", lat:42.6334, lon:-71.3162, bus:true, dist:26,
+    note:"A mill city on the Merrimack River, in Pennacook homeland. Workers from many countries powered its textile mills, and their neighborhoods still shape the city today.",
+    job:{ title:"Help set up the library book sale", pay:24, energy:-12, text:"You haul boxes and sort tables for the Friends of the Library sale. Steady work, fairly paid, and the librarians send you off with coffee." },
+    visit:{ title:"Visit the textile museum with a new friend", cost:4, morale:12, energy:-4, text:"The looms are loud and wonderful. Your museum companion worked a stitching job for years and tells the story better than any label could." } },
+  { name:"Nashua", state:"NH", lat:42.7654, lon:-71.4676, bus:false, dist:13,
+    note:"A river city on the New Hampshire line, in Pennacook homeland. Old mill buildings now hold theaters, studios, and family restaurants.",
+    job:{ title:"Take a morning shift at the farmers market", pay:20, energy:-10, text:"You help a farm crew unload crates and run the register. The pay is fair and they insist you take a bag of apples for the road." },
+    visit:{ title:"Walk the Mine Falls Park trails with a neighbor", cost:0, morale:10, energy:-6, text:"Wooded trails along the canal, herons on the water, and an unhurried hour that gives more than it takes." } },
+  { name:"Manchester", state:"NH", lat:42.9956, lon:-71.4548, bus:true, dist:18,
+    note:"Once home to the Amoskeag mills, among the largest textile works in the world. The same mill buildings now hold museums, studios, and small businesses run by families from many places.",
+    job:{ title:"Assist with a community theater load-in", pay:26, energy:-14, text:"Flats, lights, and a lot of stairs. The stage manager pays the agreed rate and the cast thanks you by name." },
+    visit:{ title:"Visit the mill museum and talk with the guides", cost:5, morale:11, energy:-4, text:"The guides include descendants of mill workers. Their stories make the big brick buildings feel personal." } },
+  { name:"Concord", state:"NH", lat:43.2081, lon:-71.5376, bus:true, dist:17,
+    note:"The state capital, on the Merrimack River in Abenaki homeland. A gold dome, a walkable main street, and bookstores that reward wandering in.",
+    job:{ title:"Take a paid shift sorting donations at the community warehouse", pay:22, energy:-12, text:"You sort, shelve, and load alongside the regular crew. Steady work, a fair shift rate, and a ride offer you politely decline." },
+    visit:{ title:"Visit the state house lawn, then a local bakery", cost:4, morale:10, energy:-3, text:"Sun on the lawn, a warm pastry, and a bench with a view of the dome. A small stop that lifts the whole day." } },
+  { name:"Lebanon", state:"NH", lat:43.6423, lon:-72.2518, bus:false, dist:65,
+    note:"An Upper Valley town near the Connecticut River, in Abenaki homeland. Dartmouth-Hitchcock and a ring of small towns give it a busy, neighborly feel.",
+    job:{ title:"Help a bike co-op tune up donated bikes", pay:24, energy:-13, text:"You true wheels and swap brake pads while the co-op crew tells road stories. They pay the posted helper rate." },
+    visit:{ title:"Visit a friend from an old job for tea", cost:0, morale:13, energy:-3, text:"An hour on a porch with an old friend, catching up properly. You leave lighter than you arrived." } },
+  { name:"White River Junction", state:"VT", lat:43.6489, lon:-72.3193, bus:true, dist:5,
+    note:"A railroad junction village where the White River meets the Connecticut River, in Abenaki homeland. Trains, a beloved cartoon studies school, and cafes full of travelers.",
+    job:{ title:"Help unload a delivery at the rail depot cafe", pay:18, energy:-9, text:"Crates of milk, beans, and bread, stacked fast before the lunch rush. The owner pays cash and adds a sandwich." },
+    visit:{ title:"Visit the cartoon studies library and gallery", cost:3, morale:10, energy:-3, text:"Original comic art on the walls and students sketching in the corners. Quiet, odd, and cheering." } },
+  { name:"Montpelier", state:"VT", lat:44.2601, lon:-72.5754, bus:true, dist:39,
+    note:"The smallest state capital in the country, in Abenaki homeland. One main street, a gold dome, and a farmers market that feels like a town meeting with better snacks.",
+    job:{ title:"Help at the bookstore with a weekend author event", pay:23, energy:-11, text:"You set chairs, stack signed copies, and run the register line. The booksellers pay the agreed helper rate." },
+    visit:{ title:"Visit the farmers market on the state house lawn", cost:4, morale:11, energy:-4, text:"Maple everything, buskers, and half the town out talking. You sample, you chat, you recharge." } },
+  { name:"Burlington", state:"VT", lat:44.4759, lon:-73.2121, bus:true, dist:39,
+    note:"On Lake Champlain, known in Abenaki as Bitawbagok, the lake in between. A college town with a brick market street and sunsets over the Adirondacks.",
+    job:null, visit:null }
+];
+const ROUTE_HV_TOWNS = [
+  { name:"New York City", state:"NY", lat:40.7128, lon:-74.0060, bus:true,
+    note:"A harbor city at the mouth of the Hudson, in the homeland of the Lenape people. Ferries, subways, and more languages on one block than most countries manage.",
+    job:null, visit:null },
+  { name:"Yonkers", state:"NY", lat:40.9312, lon:-73.8987, bus:true, dist:17,
+    note:"A river city on the east bank of the Hudson, in Lenape homeland. The Palisades rise straight across the water.",
+    job:{ title:"Help set up the riverfront market", pay:20, energy:-10, text:"You haul crates and raise canopies for the morning market by the pier. Fair pay, strong coffee, river breeze." },
+    visit:{ title:"Stroll the Untermyer Gardens", cost:0, morale:9, energy:2, text:"Terraced gardens and a walled garden modeled on paradise. You wander, you sit, you breathe." } },
+  { name:"Tarrytown", state:"NY", lat:41.0762, lon:-73.8588, bus:true, dist:11,
+    note:"A village under the great river bridge, in Wappinger homeland. Washington Irving set his famous horseman tale just up the road in Sleepy Hollow.",
+    job:{ title:"Restock the independent bookstore", pay:18, energy:-8, text:"You shelve, sticker, and alphabetize for a busy Saturday. The owner pays fairly and throws in a staff pick paperback." },
+    visit:{ title:"Walk the bridge path and the old lighthouse", cost:0, morale:8, energy:-2, text:"Wind off the Hudson, gulls arguing, and the 1883 lighthouse keeping its small red watch." } },
+  { name:"Beacon", state:"NY", lat:41.5048, lon:-73.9654, bus:true, dist:39,
+    note:"A former factory town turned arts town beneath Mount Beacon, in Wappinger homeland. The falls on Fishkill Creek run right through Main Street.",
+    job:{ title:"Help hang a gallery show", pay:24, energy:-11, text:"You hold frames level, patch walls, and sweep for tomorrow's opening. The curator pays the posted rate and means it." },
+    visit:{ title:"Browse the galleries and the falls", cost:4, morale:10, energy:-3, text:"Big art in old factory rooms, then the creek doing its white noise over the rocks." } },
+  { name:"Poughkeepsie", state:"NY", lat:41.7003, lon:-73.9301, bus:true, dist:18,
+    note:"A city midway up the valley, in Wappinger homeland. Its old rail bridge is now the Walkway Over the Hudson, the longest elevated pedestrian bridge in the world.",
+    job:{ title:"Load crates at the farm stand depot", pay:22, energy:-12, text:"Apples, squash, and cider by the pallet. Hard, plain lifting, fairly paid, with a pie for the road." },
+    visit:{ title:"Cross the Walkway Over the Hudson", cost:0, morale:10, energy:-4, text:"Two hundred feet above the river, walkers, cyclists, and one very pleased dog. The whole valley in one look." } },
+  { name:"Kingston", state:"NY", lat:41.9270, lon:-73.9974, bus:true, dist:21,
+    note:"New York's first capital, in Esopus homeland, where the Rondout Creek meets the Hudson. Stone houses from the 1600s still stand in the Stockade District.",
+    job:{ title:"Varnish help at the maritime museum", pay:23, energy:-10, text:"You sand and brush alongside the boat shop crew restoring a wooden launch. Skilled, patient, fairly paid work." },
+    visit:{ title:"Wander the Rondout waterfront", cost:0, morale:9, energy:-2, text:"Tugboats, a lighthouse offshore, and seafood shacks doing steady business. You watch the creek meet the river." } },
+  { name:"Catskill", state:"NY", lat:42.2173, lon:-73.8646, bus:false, dist:24,
+    note:"A village facing the Catskill escarpment, in Mahican homeland. Painter Thomas Cole lived here and turned these mountains into America's first art movement.",
+    job:{ title:"Mend fences at the animal sanctuary", pay:21, energy:-12, text:"You run wire and set posts while rescued goats supervise. The sanctuary pays its posted day rate." },
+    visit:{ title:"See the mountain view from Cole's porch", cost:3, morale:8, energy:-1, text:"The same wall of blue mountains that filled a thousand canvases. It still works." } },
+  { name:"Hudson", state:"NY", lat:42.2529, lon:-73.7103, bus:true, dist:13,
+    note:"A small city of antiques shops and galleries on the river's east bank, in Mahican homeland. Its lighthouse sits mid-river like a house that wandered off.",
+    job:{ title:"Inventory day at the antiques warehouse", pay:22, energy:-9, text:"You tag, photograph, and shelve a season of estate finds. The dealer pays fairly and tells every object's story." },
+    visit:{ title:"Bookshops and bakeries on Warren Street", cost:3, morale:9, energy:-2, text:"Six blocks of good browsing and better pastries, with the river light at the end of the street." } },
+  { name:"Albany", state:"NY", lat:42.6526, lon:-73.7562, bus:true, dist:32,
+    note:"The state capital on the Hudson, in the homelands of the Mahican and Mohawk peoples. One of the oldest cities in the country, and the end of the valley road.",
+    job:null, visit:null }
+];
+const ROUTE_CV_TOWNS = [
+  { name:"Burlington", state:"VT", lat:44.4759, lon:-73.2121, bus:true,
+    note:"On Lake Champlain, known in Abenaki as Bitawbagok, the lake in between. A college town with a brick market street and sunsets over the Adirondacks.",
+    job:null, visit:null },
+  { name:"Vergennes", state:"VT", lat:44.1670, lon:-73.2539, bus:false, dist:26,
+    note:"Vermont's smallest city, on Otter Creek in Abenaki homeland. The falls powered mills here long before the little downtown grew around them.",
+    job:{ title:"Morning shift at the bakery", pay:19, energy:-9, text:"You tray scones, run the register, and learn the regulars by minute two. Fair pay and a warm roll for the road." },
+    visit:{ title:"Watch the falls from the bridge", cost:0, morale:8, energy:1, text:"Otter Creek drops right through the middle of town. Herons work the edges like they own the place." } },
+  { name:"Middlebury", state:"VT", lat:44.0153, lon:-73.1673, bus:true, dist:20,
+    note:"A college town on Otter Creek in Abenaki homeland, with a marble church, a falls in the center, and the Green Mountains standing behind.",
+    job:{ title:"Textbook rush at the college bookstore", pay:22, energy:-10, text:"You scan, stack, and direct a tide of students. Busy, friendly, and paid at the posted rate." },
+    visit:{ title:"The art museum and the creek walk", cost:3, morale:9, energy:-2, text:"A quiet gallery, then the path along the creek where the town comes to think." } },
+  { name:"Ticonderoga", state:"NY", lat:43.8484, lon:-73.4235, bus:false, dist:28,
+    note:"A town between two lakes, in Mohawk and Abenaki homelands. The star fort above the narrows guarded the water route between Canada and the Hudson for two empires.",
+    job:{ title:"Inventory at the fort's museum store", pay:20, energy:-8, text:"You count, tag, and shelve while interpreters in wool coats argue happily about history outside." },
+    visit:{ title:"Walk the fort grounds with an interpreter", cost:4, morale:9, energy:-3, text:"Stone walls, a parade ground, and the whole lake corridor explained by someone who loves it." } },
+  { name:"Lake George", state:"NY", lat:43.4265, lon:-73.7123, bus:true, dist:33,
+    note:"A village at the foot of a 32 mile lake so clear the Haudenosaunee called it Andiatarocte, the lake that shuts itself in. In Mohawk homeland.",
+    job:{ title:"Dock help at the marina", pay:24, energy:-11, text:"You coil lines, fuel boats, and direct launch traffic. Good tips on top of fair pay when the sun is out." },
+    visit:{ title:"The lakefront promenade at golden hour", cost:0, morale:9, energy:-2, text:"Steamboats docking, mountains doubling in the water, and ice cream doing brisk business." } },
+  { name:"Glens Falls", state:"NY", lat:43.3095, lon:-73.6445, bus:true, dist:17,
+    note:"A small city where the Hudson drops over falls between rock walls, in Mohawk and Mahican homelands. Cooper's Cave, of Last of the Mohicans fame, sits under the bridge.",
+    job:{ title:"Archive boxes at the history museum", pay:21, energy:-8, text:"You label photographs of mills, parades, and floods for the county archive. Quiet, careful, fairly paid." },
+    visit:{ title:"The falls and the Hyde Collection", cost:3, morale:8, energy:-2, text:"River thunder under the bridge, then a small palace of art two blocks away. A very Glens Falls pairing." } },
+  { name:"Saratoga Springs", state:"NY", lat:43.0831, lon:-73.7846, bus:true, dist:18,
+    note:"A city built on mineral springs, in Mohawk and Mahican homelands. The springs were gathering places for Indigenous peoples long before the grand hotels arrived.",
+    job:{ title:"Set up the farmers market pavilion", pay:22, energy:-10, text:"You raise tents and chalk stall numbers for the Saturday market. Fair pay and first pick of the peaches." },
+    visit:{ title:"Taste the mineral springs in the state park", cost:0, morale:10, energy:1, text:"Each spring tastes different, some wonderful, some an experience. The geysers do their quiet show." } },
+  { name:"Albany", state:"NY", lat:42.6526, lon:-73.7562, bus:true, dist:38,
+    note:"The state capital on the Hudson, in the homelands of the Mahican and Mohawk peoples. One of the oldest cities in the country, and the end of the valley road.",
+    job:null, visit:null }
+];
+/* Routes (Matthew, Oct 31, 2026: BOTH). Every route is independent:
+   selectable on its own, fresh resources, playable in any order. And
+   they chain: finishing one offers Continue into the geographically
+   next route with the same traveler and pet, fresh resources again.
+   The lifetime layer (identity defaults, album, field friends) is
+   what carries across, by design. */
+const ROUTES = {
+  bb: { id:"bb", name:"Boston to Burlington", short:"Mill towns, river valleys, and the Green Mountains", startMoney:60, towns:ROUTE_BB_TOWNS,
+        winNote:"Arrived in Burlington with the lake shining. Wish you were here.",
+        chainNext:{ route:"cv", dir:"n", label:"Burlington to Albany, down the Champlain Valley" } },
+  hv: { id:"hv", name:"New York City to Albany", short:"The Hudson Valley, river town by river town", startMoney:45, towns:ROUTE_HV_TOWNS,
+        winNote:"Arrived in Albany with the river shining. Wish you were here.",
+        winNoteS:"Arrived in New York City with the Hudson behind you and the harbor ahead. Wish you were here.",
+        chainNext:null },
+  cv: { id:"cv", name:"Burlington to Albany", short:"Lake, fort, and falls towns down the Champlain Valley", startMoney:50, towns:ROUTE_CV_TOWNS,
+        winNote:"Arrived in Albany where the Champlain Valley opens into the Hudson. Wish you were here.",
+        chainNext:{ route:"hv", dir:"s", label:"Albany to New York City, down the Hudson" } }
+};
+function townsFor(routeId, dir){
+  const base = ROUTES[routeId].towns;
+  if (dir !== "s") return base;
+  const rev = base.slice().reverse().map(t => Object.assign({}, t));
+  for (let j = 1; j < rev.length; j++) rev[j].dist = base[base.length - j].dist;
+  rev[0].dist = 0;
+  return rev;
+}
+let TOWNS = ROUTES.bb.towns;
+function routeMeta(){ return (state && ROUTES[state.routeId]) || ROUTES.bb; }
+function bindRoute(){
+  if (!state) { TOWNS = ROUTES.bb.towns; return; }
+  if (!state.routeId || !ROUTES[state.routeId]) state.routeId = "bb";
+  if (!state.dir) state.dir = "n";
+  TOWNS = townsFor(state.routeId, state.dir);
+}
+function legsTotal(){ return TOWNS.length - 1; }
+function finishName(){ return TOWNS[TOWNS.length - 1].name; }
+function routeMiles(route){ return route.towns.reduce((a, t) => a + (t.dist || 0), 0); }
+function introRouteButtons(saved){
+  const tags = { bb:"Chain start · independent too", hv:"Independent", cv:"The connector" };
+  return ["bb", "hv", "cv"].map((rid, i) => {
+    const r = ROUTES[rid];
+    return '<button class="choice' + (!saved && i === 0 ? " primary" : "") + '" data-action="new-run" data-route="' + rid + '">' + r.name +
+      '<span class="sub">' + r.short + ". About " + routeMiles(r) + " miles, " + (r.towns.length - 1) + " legs, start with $" + r.startMoney + '.</span>' +
+      '<span class="tag">' + tags[rid] + "</span></button>";
+  }).join("");
+}
+function albumsIntroHTML(){
+  let out = ""; let first = true;
+  for (const rid of ["bb", "hv", "cv"]) {
+    if (Object.keys(album.visits || {}).some(k => k.indexOf(rid + ":") === 0)) { out += albumHTML(rid, first); first = false; }
+  }
+  return out;
+}
+function winNoteFor(){
+  const m = routeMeta();
+  return state && state.dir === "s" && m.winNoteS ? m.winNoteS : m.winNote;
+}
+function chainNextFor(st){
+  if (!st) return null;
+  if (st.routeId === "hv") return null;
+  const m = ROUTES[st.routeId];
+  return m ? m.chainNext : null;
+}
+const TRANSPORTS = [
+  { id:"car", name:"Car", icon:"🚗" },
+  { id:"bike", name:"Bicycle", icon:"🚲" },
+  { id:"bus", name:"Bus", icon:"🚌" }
+];
+function hashNum(n){ let x = (n >>> 0) ^ 0x9e3779b9; x = Math.imul(x ^ (x >>> 16), 0x45d9f3b); x = Math.imul(x ^ (x >>> 16), 0x45d9f3b); return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
+function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+function cToF(c){ return Math.round(c * 9 / 5 + 32); }
+function kmhToMph(k){ return Math.round(k * 0.621371); }
+function wmoCategory(code){
+  if (code === 0 || code === 1) return "clear";
+  if (code === 2 || code === 3) return "cloudy";
+  if (code === 45 || code === 48) return "fog";
+  if ([71,73,75,77,85,86].includes(code)) return "snow";
+  if ([95,96,99].includes(code)) return "storm";
+  if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) return "rain";
+  return "cloudy";
+}
+const WEATHER_LABEL = { clear:"Clear skies", cloudy:"Cloudy", fog:"Fog", rain:"Rain", snow:"Snow", storm:"Thunderstorms" };
+const WEATHER_ICON = { clear:"☀️", cloudy:"☁️", fog:"🌫️", rain:"🌧️", snow:"🌨️", storm:"⛈️" };
+function seededWeather(seed, townIndex){
+  const r = hashNum(seed * 131 + townIndex * 7919 + 17);
+  let cat = "clear";
+  if (r < 0.34) cat = "clear"; else if (r < 0.58) cat = "cloudy"; else if (r < 0.66) cat = "fog";
+  else if (r < 0.84) cat = "rain"; else if (r < 0.93) cat = "snow"; else cat = "storm";
+  const base = { clear:{t:64,w:6,p:0}, cloudy:{t:56,w:10,p:0}, fog:{t:49,w:4,p:0}, rain:{t:53,w:14,p:2.4}, snow:{t:29,w:16,p:1.8}, storm:{t:59,w:27,p:4.1} }[cat];
+  return { townIndex, category:cat, label:WEATHER_LABEL[cat], tempF:base.t, windMph:base.w, precipMm:base.p, source:"seeded" };
+}
+async function fetchLiveWeather(town){
+  const url = "https://api.open-meteo.com/v1/forecast?latitude=" + town.lat + "&longitude=" + town.lon +
+    "&current=temperature_2m,weather_code,wind_speed_10m,precipitation&forecast_days=1";
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error("bad status");
+    const data = await res.json();
+    if (!data || data.error || !data.current) throw new Error("bad data");
+    const cat = wmoCategory(data.current.weather_code);
+    return { townIndex: TOWNS.indexOf(town), category:cat, label:WEATHER_LABEL[cat],
+      tempF: cToF(data.current.temperature_2m), windMph: kmhToMph(data.current.wind_speed_10m),
+      precipMm: data.current.precipitation || 0, source:"live" };
+  } catch (e) {
+    clearTimeout(timer);
+    throw e;
+  }
+}
+function weatherMods(transportId, w){
+  const m = { money:0, energy:0, morale:0, notes:[] };
+  if (!w) return m;
+  const cat = w.category;
+  const add = (k, v, note) => { if (v) { m[k] += v; if (note) m.notes.push(note); } };
+  if (transportId === "car") {
+    if (cat === "fog") { add("energy", 4, "Fog slows the drive."); }
+    if (cat === "rain") { add("money", 3); add("energy", 4); add("morale", -3, "Rain makes for a tense drive."); }
+    if (cat === "snow") { add("money", 5); add("energy", 8); add("morale", -5, "Snow makes the drive slow and costly."); }
+    if (cat === "storm") { add("money", 6); add("energy", 10); add("morale", -7, "Storm driving is draining."); }
+  } else if (transportId === "bike") {
+    if (cat === "clear") { add("morale", 3, "Clear skies make the ride a pleasure."); }
+    if (cat === "fog") { add("energy", 6); add("morale", -3, "Fog means slow, careful riding."); }
+    if (cat === "rain") { add("energy", 12); add("morale", -10, "Rain soaks a rider through."); }
+    if (cat === "snow") { add("energy", 18); add("morale", -12, "Snow is rough going on a bike."); }
+    if (cat === "storm") { add("energy", 20); add("morale", -14, "Riding into a storm is a hard day."); }
+  } else if (transportId === "bus") {
+    if (cat === "fog") { add("energy", 3, "Fog slows the schedule a bit."); }
+    if (cat === "rain") { add("money", 1); add("energy", 3); add("morale", -2); }
+    if (cat === "snow") { add("money", 2); add("energy", 5); add("morale", -4, "Snow delays the route."); }
+    if (cat === "storm") { add("money", 2); add("energy", 7); add("morale", -6, "Storm delays stack up."); }
+  }
+  if (w.windMph >= 20) {
+    if (transportId === "bike") { add("energy", 8, "Strong wind fights you the whole way."); add("morale", -3); }
+    if (transportId === "car") { add("money", 2); }
+    if (transportId === "bus") { add("money", 1); }
+  }
+  if (typeof w.tempF === "number") {
+    if (transportId === "bike" && w.tempF <= 32) { add("energy", 5, "Cold air costs extra effort."); }
+    if (transportId === "bike" && w.tempF >= 90) { add("energy", 6); add("morale", -3, "Heat makes the ride heavy."); }
+    if (transportId === "car" && w.tempF >= 90) { add("money", 2); }
+  }
+  return m;
+}
+function baseCosts(transportId, dist){
+  if (transportId === "car") return { money: Math.round(dist * 0.42) + 3, energy: 6 + Math.round(dist * 0.08), morale: -2 };
+  if (transportId === "bike") return { money: 2, energy: 10 + Math.round(dist * 0.75), morale: 4 };
+  return { money: 7 + Math.round(dist * 0.28), energy: 5 + Math.round(dist * 0.05), morale: -3 };
+}
+function costsFor(transportId, legIndex, w, pet){
+  const dist = TOWNS[legIndex + 1].dist;
+  const b = baseCosts(transportId, dist);
+  const m = weatherMods(transportId, w);
+  const out = { money: b.money + m.money, energy: b.energy + m.energy, morale: b.morale + m.morale, notes: m.notes.slice(), dist };
+  if (pet) { out.money += pet.costLeg; out.notes.push(pet.costNote); }
+  return out;
+}
+/* Pets (Matthew, Oct 31, 2026): a choice of dog or cat at trip setup.
+   Each has its own benefits and resource drawbacks. */
+const PETS = {
+  dog: { kind:"dog", name:"Biscuit", icon:"🐕", moraleLeg:3, moraleVisit:3, costLeg:3, restCost:13, restEnergy:26,
+         costNote:"Includes $3 for Biscuit's food and supplies." },
+  cat: { kind:"cat", name:"Miso", icon:"🐈", moraleLeg:2, moraleVisit:2, costLeg:2, restCost:12, restEnergy:30,
+         costNote:"Includes $2 for Miso's food and litter." }
+};
+function petProfile(){ return state && state.pet ? PETS[state.pet] : null; }
+function petName(){ const pr = petProfile(); return (state && state.petName) || (pr ? pr.name : ""); }
+/* Pet naming (Matthew via Game Manager, Oct 31, 2026): the player names
+   the pet. A suggestion is rolled from a species pool, can be rerolled,
+   and can be replaced by typing. The species numbers never change. */
+const PET_NAME_POOLS = {
+  dog: ["Biscuit", "Waffles", "Pepper", "Maple", "Juno", "Clover", "Beans", "Pickles", "Sunny", "Moose"],
+  cat: ["Miso", "Mochi", "Suki", "Nori", "Tofu", "Pepper", "Juno", "Clover", "Beans", "Sunny"]
+};
+function rollPetName(species, avoid){
+  const pool = PET_NAME_POOLS[species] || PET_NAME_POOLS.dog;
+  let n = pool[Math.floor(Math.random() * pool.length)];
+  if (pool.length > 1) { let guard = 0; while (n === avoid && guard++ < 8) n = pool[Math.floor(Math.random() * pool.length)]; }
+  return n;
+}
+/* Offensive-name filter (Matthew via Game Manager, Oct 31, 2026):
+   local only, nothing leaves the device. Text is normalized (case,
+   spaces and punctuation stripped, leetspeak folded) before matching.
+   HARD terms match anywhere in the squashed text; WORD terms must be
+   a whole word or the whole name, so ordinary names are not trapped
+   by substrings (Shital, Scunthorpe, and Dick all pass). */
+const NAME_HARD = ["fuck", "nigger", "nigga", "faggot", "kike", "wetback", "chink", "gook", "retard", "tranny", "whore", "slut", "bitch", "asshole", "cocksucker", "pedophile", "molester", "rapist"];
+const NAME_WORDS = ["shit", "cunt", "piss", "kkk", "nazi", "hitler", "rape", "penis", "vagina", "semen", "porn", "pervert", "hoe", "thot"];
+function foldLeet(w){ return w.replace(/0/g, "o").replace(/1/g, "i").replace(/3/g, "e").replace(/4/g, "a").replace(/5/g, "s").replace(/7/g, "t").replace(/8/g, "b").replace(/@/g, "a").replace(/\$/g, "s").replace(/!/g, "i"); }
+function nameBlocked(raw){
+  if (!raw) return false;
+  const words = String(raw).toLowerCase().split(/[^a-z0-9@$!]+/).filter(Boolean).map(foldLeet);
+  if (!words.length) return false;
+  const squashed = words.join("");
+  const collapsed = squashed.replace(/(.)\1+/g, "$1");
+  for (const t of NAME_HARD) if (squashed.includes(t) || collapsed.includes(t)) return true;
+  for (const t of NAME_WORDS) if (words.includes(t) || squashed === t || collapsed === t) return true;
+  return false;
+}
+function travelerName(){ return state && state.traveler && state.traveler.name ? state.traveler.name : "Traveler"; }
+function travelerNameEsc(){ return esc(travelerName()); }
+/* Occasional companions (Matthew, Oct 31, 2026): they ride one leg,
+   bring a real benefit, and cost a meal. They cannot ride a bicycle. */
+const COMPANIONS = [
+  { name:"Maya", desc:"a nurse heading home after a night shift", benefit:"share", offer:"Maya offers to split the cost of the next leg if she can ride along." },
+  { name:"Deshawn", desc:"a teacher who knows these roads well", benefit:"navigate", offer:"Deshawn can navigate the next leg, cutting its energy cost by about a third." },
+  { name:"Priya", desc:"a photographer chasing fall color", benefit:"morale", offer:"Priya's stories and photo stops lift morale (+8) along the next leg." },
+  { name:"Tom", desc:"a retired rail conductor with a thermos and time", benefit:"energy", offer:"Tom packs extra food and paces the day well (+6 energy when you arrive)." }
+];
+function companionFor(seed, leg){
+  const r = hashNum(seed * 271 + leg * 911 + 5);
+  if (r >= 0.55) return null;
+  const idx = Math.floor(hashNum(seed * 13 + leg * 77 + 3) * COMPANIONS.length);
+  return COMPANIONS[idx];
+}
+/* Field friends (Matthew, Oct 31, 2026): collectible critters found on
+   the road. Befriending one gives a small bonus, +1 morale per leg
+   while along (up to +2), and a place in the lifetime collection. */
+const CRITTERS = [
+  { id:"squirrel", icon:"🐿️", name:"Peanut", species:"squirrel", text:"A squirrel has been eyeing your trail mix since the last rest stop, bold as anything.", bonus:{ money:5 }, bonusText:"Peanut promptly unearths a forgotten $5 from your coat pocket. No one knows how it got there. (+$5)" },
+  { id:"rabbit", icon:"🐇", name:"Clover", species:"rabbit", text:"A rabbit keeps pace beside the quiet stretch of road, unbothered and curious.", bonus:{ energy:6 }, bonusText:"Clover leads you to a perfect picnic patch, and you both snack. (+6 energy)" },
+  { id:"crow", icon:"🐦‍⬛", name:"Jett", species:"crow", text:"A crow has adopted your route, gliding from signpost to signpost like a tour guide.", bonus:{ morale:6 }, bonusText:"Jett learns to say your name by the next town. The impression is flatteringly good. (+6 morale)" },
+  { id:"frog", icon:"🐸", name:"Pond", species:"frog", text:"A frog hops out of the roadside grass and studies you like you are the interesting one here.", bonus:{ energy:4, morale:2 }, bonusText:"Pond approves of your pace, and somehow that is restful. (+4 energy, +2 morale)" }
+];
+function critterById(id){ return CRITTERS.find(c => c.id === id) || null; }
+function encounterFor(seed, legIndex){
+  const r = hashNum(seed * 389 + legIndex * 613 + 11);
+  if (r >= 0.32) return null;
+  const idx = Math.floor(hashNum(seed * 97 + legIndex * 41 + 3) * CRITTERS.length);
+  return CRITTERS[idx];
+}
+function benefitText(c){
+  if (!c) return "";
+  if (c.benefit === "share") return c.name + " splits this leg's travel cost with you.";
+  if (c.benefit === "navigate") return c.name + " is navigating: energy cost cut by about a third.";
+  if (c.benefit === "morale") return c.name + " is riding along: +8 morale on this leg.";
+  if (c.benefit === "energy") return c.name + " is riding along: +6 energy when you arrive.";
+  return "";
+}
+function travelEvent(seed, legIndex, transportId){
+  const r = hashNum(seed * 977 + legIndex * 331 + (transportId === "car" ? 11 : transportId === "bike" ? 23 : 37));
+  const pick = Math.floor(hashNum(seed * 31 + legIndex * 101 + 7) * 2);
+  if (r < 0.38) {
+    const downs = {
+      car: [
+        { text:"A tire picked up a nail. A local shop patched it quickly and charged a fair price.", money:-12, morale:-3, good:false },
+        { text:"Road work forced a long detour loop through two extra towns.", energy:-7, morale:-4, good:false }
+      ],
+      bike: [
+        { text:"A flat on the shoulder. Your repair kit and some patience got you rolling again.", energy:-10, morale:-3, good:false },
+        { text:"A price spike at the only store on this stretch made snacks and water costly.", money:-7, good:false }
+      ],
+      bus: [
+        { text:"The bus ran well behind schedule after a series of slow stops.", energy:-4, morale:-5, good:false },
+        { text:"A fare change at the window cost more than the posted price.", money:-6, good:false }
+      ]
+    };
+    return downs[transportId][pick];
+  }
+  if (r < 0.62) {
+    const ups = [
+      { text:"A fellow traveler shared homemade muffins with {name} at a rest stop and refused any payment.", energy:8, morale:5, good:true },
+      { text:"A wide river view opened up along the route, the kind that resets a whole afternoon.", morale:8, good:true }
+    ];
+    return ups[pick];
+  }
+  return null;
+}
+</script>
+
+<script>
+"use strict";
+let state = null;
+let weatherLoading = false;
+/* Audio settings (Matthew, Oct 31, 2026): gentle road music ON by default,
+   event sound effects, and volume controls in Settings. Persisted in its
+   own stable key. Music can only start after the first tap, which is a
+   browser rule, not a setting. */
+const SETTINGS_KEY = "roadtrip-roguelike-settings-v1";
+let settings = { master:80, music:70, sfx:90, musicOn:true, soundOn:true };
+try {
+  const raw = localStorage.getItem(SETTINGS_KEY);
+  if (raw) settings = { ...settings, ...JSON.parse(raw) };
+  else if (localStorage.getItem("roadtrip-roguelike-sound") === "off") settings.soundOn = false;
+} catch (e) {}
+if (!settings.traveler) settings.traveler = { name:"", gender:"", pronouns:"they/them" };
+if (!settings.petNames) settings.petNames = { dog:"", cat:"" };
+function saveSettings(){ try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {} }
+/* Traveler identity (Matthew, Oct 31, 2026): name, gender, and pronouns
+   are set at the onset of a trip and remembered as the default for the
+   next one. The setup screen edits a draft; choosing a pet commits it. */
+const GENDERS = ["Woman", "Man", "Nonbinary"];
+const PRONOUNS = ["she/her", "he/him", "they/them"];
+let draft = { name:"", gender:"", genderCustom:"", pronouns:"they/them", pronounsCustom:"", pet:null, petName:"", petNameFor:"" };
+function resetDraft(){
+  const t = settings.traveler || {};
+  draft = { name: t.name || "", gender:"", genderCustom:"", pronouns:"they/them", pronounsCustom:"" };
+  if (GENDERS.includes(t.gender)) draft.gender = t.gender;
+  else if (t.gender) { draft.gender = "custom"; draft.genderCustom = t.gender; }
+  if (PRONOUNS.includes(t.pronouns)) draft.pronouns = t.pronouns;
+  else if (t.pronouns) { draft.pronouns = "custom"; draft.pronounsCustom = t.pronouns; }
+  draft.pet = null; draft.petName = ""; draft.petNameFor = "";
+}
+resetDraft();
+function esc(v){ return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function commitIdentity(){
+  const name = (draft.name || "").trim() || "Traveler";
+  const gender = draft.gender === "custom" ? (draft.genderCustom || "").trim() : (draft.gender || "");
+  const pronouns = draft.pronouns === "custom" ? ((draft.pronounsCustom || "").trim() || "they/them") : (draft.pronouns || "they/them");
+  state.traveler = { name, gender, pronouns };
+  settings.traveler = state.traveler;
+  saveSettings();
+  logLine(name + " set out from " + TOWNS[0].name + " with $" + routeMeta().startMoney + ", a map, and a plan to reach " + finishName() + ".");
+}
+saveSettings();
+function ensureAudioSession(){
+  try { if (navigator.audioSession) navigator.audioSession.type = "ambient"; } catch (e) {}
+}
+let actx = null, masterBus = null, musicBus = null, sfxBus = null;
+function ensureCtx(){
+  ensureAudioSession();
+  try {
+    if (!actx) {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      masterBus = actx.createGain(); masterBus.connect(actx.destination);
+      musicBus = actx.createGain(); musicBus.connect(masterBus);
+      sfxBus = actx.createGain(); sfxBus.connect(masterBus);
+      applyVolumes();
+    }
+    if (actx.state === "suspended" || actx.state === "interrupted") actx.resume();
+    return actx;
+  } catch (e) { return null; }
+}
+function applyVolumes(){
+  if (!actx) return;
+  try {
+    masterBus.gain.value = settings.soundOn ? settings.master / 100 : 0;
+    musicBus.gain.value = settings.music / 100;
+    sfxBus.gain.value = settings.sfx / 100;
+  } catch (e) {}
+}
+const __RR_AUDIO = { lastSfx:null, history:[], notes:0, pads:0, musicPlaying:false };
+function tone(freq, dur, delay, vol, type){
+  if (!settings.soundOn) return;
+  const ctx = ensureCtx(); if (!ctx) return;
+  try {
+    const t0 = ctx.currentTime + (delay || 0);
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol || 0.035, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(sfxBus);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  } catch (e) {}
+}
+function noiseBurst(dur, delay, cutoff, vol){
+  if (!settings.soundOn) return;
+  const ctx = ensureCtx(); if (!ctx) return;
+  try {
+    const t0 = ctx.currentTime + (delay || 0);
+    const len = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = cutoff;
+    const g = ctx.createGain(); g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(sfxBus);
+    src.start(t0);
+  } catch (e) {}
+}
+/* Event sound effects: each one matches what just happened. */
+function playSfx(name, base){
+  const b = base || 0;
+  __RR_AUDIO.lastSfx = name;
+  __RR_AUDIO.history.push(name); __RR_AUDIO.history = __RR_AUDIO.history.slice(-24);
+  if (!settings.soundOn) return;
+  if (name === "tap") tone(440, 0.09, b, 0.03);
+  else if (name === "car") { tone(82, 0.55, b, 0.05, "triangle"); tone(110, 0.5, b + 0.06, 0.04, "triangle"); }
+  else if (name === "bike") { tone(1318, 0.16, b, 0.028); tone(1568, 0.2, b + 0.1, 0.028); }
+  else if (name === "bus") { noiseBurst(0.3, b, 900, 0.05); tone(98, 0.4, b + 0.02, 0.04, "triangle"); }
+  else if (name === "job") { tone(880, 0.12, b, 0.03); tone(1108, 0.12, b + 0.08, 0.03); tone(1318, 0.18, b + 0.16, 0.03); }
+  else if (name === "visit") { tone(523, 0.14, b, 0.032); tone(784, 0.2, b + 0.11, 0.032); }
+  else if (name === "rest") { tone(392, 0.28, b, 0.028); tone(330, 0.4, b + 0.2, 0.028); }
+  else if (name === "good") { tone(660, 0.12, b, 0.03); tone(830, 0.12, b + 0.09, 0.03); tone(990, 0.2, b + 0.18, 0.03); }
+  else if (name === "bad") { tone(196, 0.25, b, 0.042); tone(147, 0.42, b + 0.17, 0.042); }
+  else if (name === "stamp") { noiseBurst(0.08, b, 500, 0.06); tone(1568, 0.13, b + 0.06, 0.024); }
+  else if (name === "win") { tone(523, 0.14, b, 0.032); tone(659, 0.14, b + 0.12, 0.032); tone(784, 0.14, b + 0.24, 0.032); tone(1046, 0.3, b + 0.36, 0.034); }
+  else if (name === "fail") { tone(330, 0.3, b, 0.036); tone(262, 0.5, b + 0.22, 0.036); }
+}
+function sndTap(){ playSfx("tap"); }
+/* Gentle generative road music: warm plucks wandering an A major
+   pentatonic over soft pads (A, F sharp minor, D, E). */
+const PENTA = [440, 493.88, 554.37, 659.25, 739.99, 880];
+const PADS = [[220, 277.18, 329.63], [174.61, 220, 277.18], [146.83, 220, 293.66], [164.81, 246.94, 329.63]];
+let melodyIdx = 3, padIdx = 0, musicNoteTimer = null, padTimer = null;
+function pluck(freq){
+  const ctx = ensureCtx(); if (!ctx) return;
+  try {
+    const t0 = ctx.currentTime;
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.055, t0 + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.4);
+    o.connect(g); g.connect(musicBus);
+    o.start(t0); o.stop(t0 + 1.5);
+  } catch (e) {}
+}
+function padChord(){
+  if (!__RR_AUDIO.musicPlaying) return;
+  const ctx = ensureCtx(); if (!ctx) return;
+  try {
+    const chord = PADS[padIdx % PADS.length]; padIdx++;
+    const t0 = ctx.currentTime;
+    chord.forEach(fr => {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = "triangle"; o.frequency.value = fr;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(0.016, t0 + 1.6);
+      g.gain.setValueAtTime(0.016, t0 + 6.4);
+      g.gain.linearRampToValueAtTime(0.0001, t0 + 8.4);
+      o.connect(g); g.connect(musicBus);
+      o.start(t0); o.stop(t0 + 8.5);
+    });
+    __RR_AUDIO.pads++;
+  } catch (e) {}
+  padTimer = setTimeout(padChord, 8000);
+}
+function musicNote(){
+  if (!__RR_AUDIO.musicPlaying) return;
+  const steps = [-1, 0, 1, 1, -1, 2, -2];
+  melodyIdx = Math.max(0, Math.min(PENTA.length - 1, melodyIdx + steps[Math.floor(Math.random() * steps.length)]));
+  pluck(PENTA[melodyIdx]);
+  __RR_AUDIO.notes++;
+  musicNoteTimer = setTimeout(musicNote, 1500 + Math.random() * 1600);
+}
+function startMusic(){
+  if (__RR_AUDIO.musicPlaying || !settings.musicOn || !settings.soundOn) return;
+  if (!ensureCtx()) return;
+  __RR_AUDIO.musicPlaying = true;
+  padChord(); musicNote();
+}
+function stopMusic(){
+  __RR_AUDIO.musicPlaying = false;
+  if (musicNoteTimer) clearTimeout(musicNoteTimer);
+  if (padTimer) clearTimeout(padTimer);
+}
+document.addEventListener("pointerdown", () => { ensureAudioSession(); const ctx = ensureCtx(); if (ctx) startMusic(); }, { passive:true });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopMusic();
+  else if (settings.musicOn && settings.soundOn && actx) startMusic();
+});
+ensureAudioSession();
+
+function save(){
+  try {
+    if (!state || state.phase === "over") localStorage.removeItem(SAVE_KEY);
+    else localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+function load(){
+  try { const raw = localStorage.getItem(SAVE_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+/* The postcard album is a lifetime collection (Matthew, Oct 31, 2026):
+   it persists across runs in its own stable key, and revisiting a town
+   adds another stamp to that town's postcard. */
+const ALBUM_KEY = "roadtrip-roguelike-album-v1";
+let album = (() => { try { const r = localStorage.getItem(ALBUM_KEY); if (r) { const p = JSON.parse(r); if (p && p.visits) return p; } } catch (e) {} return { visits: {} }; })();
+if (!album.critters) album.critters = {};
+(function migrateAlbum(){
+  const keys = Object.keys(album.visits || {});
+  let changed = false;
+  for (const k of keys) {
+    if (/^\d+$/.test(k)) {
+      const t = ROUTE_BB_TOWNS[Number(k)];
+      if (t) { const nk = "bb:" + t.name; album.visits[nk] = (album.visits[nk] || 0) + album.visits[k]; }
+      delete album.visits[k]; changed = true;
+    }
+  }
+  if (changed) saveAlbum();
+})();
+function saveAlbum(){ try { localStorage.setItem(ALBUM_KEY, JSON.stringify(album)); } catch (e) {} }
+function recordVisit(i){ const key = (state.routeId || "bb") + ":" + TOWNS[i].name; album.visits[key] = (album.visits[key] || 0) + 1; saveAlbum(); return album.visits[key]; }
+function logLine(text){ state.log.unshift(text); state.log = state.log.slice(0, 8); }
+function newRun(routeId, opts){
+  opts = opts || {};
+  const rid = routeId && ROUTES[routeId] ? routeId : "bb";
+  const dir = opts.dir === "s" ? "s" : "n";
+  const seed = (Date.now() % 2147483647) >>> 0;
+  state = { version:1, seed, leg:0, phase:"setup", money:ROUTES[rid].startMoney, energy:90, morale:85,
+    weather:null, lastEvent:null, log:[], legsDone:0, jobsDone:0, visitsDone:0, result:null, reason:"",
+    postcards:[0], justCollected:null, pet:null, petName:null, setupError:null, companion:null, companionFarewell:null, traveler:null, friends:[], encounter:null,
+    routeId:rid, dir };
+  bindRoute();
+  state.lastVisitCount = recordVisit(0);
+  resetDraft();
+  state.traveler = { name: (settings.traveler.name || "Traveler"), gender: settings.traveler.gender || "", pronouns: settings.traveler.pronouns || "they/them" };
+  if (opts.carry) {
+    state.traveler = opts.carry.traveler || state.traveler;
+    state.pet = opts.carry.pet || null;
+    state.petName = opts.carry.petName || null;
+    state.phase = "plan";
+    logLine("The journey continues: " + TOWNS[0].name + " to " + finishName() + ", with $" + state.money + " and the road calling.");
+  }
+  save(); render(); ensureWeather();
+}
+function legCosts(transportId){
+  const prof = petProfile();
+  const c = costsFor(transportId, state.leg, state.weather, prof ? { costLeg: prof.costLeg, costNote: "Includes $" + prof.costLeg + " for " + petName() + "'s " + (prof.kind === "dog" ? "food and supplies" : "food and litter") + "." } : null);
+  if (state.companion) {
+    if (state.companion.benefit === "share") c.money = Math.ceil(c.money / 2);
+    if (state.companion.benefit === "navigate") c.energy = Math.max(1, Math.round(c.energy * 0.67));
+  }
+  return c;
+}
+function failCheck(){
+  if (state.money <= 0) { endRun(false, "Your money ran out in " + TOWNS[state.leg].name + ". The trip ends here, with the road still ahead."); return true; }
+  if (state.energy <= 0) { endRun(false, "Your energy ran out in " + TOWNS[state.leg].name + ". Rest is not optional on a trip like this."); return true; }
+  if (state.morale <= 0) { endRun(false, "Your morale ran out in " + TOWNS[state.leg].name + ". Even a good road needs a reason to keep going."); return true; }
+  return false;
+}
+function endRun(won, reason){
+  state.phase = "over"; state.result = won ? "win" : "lost"; state.reason = reason || "";
+  save(); render();
+  playSfx(won ? "win" : "fail");
+}
+async function ensureWeather(){
+  if (!state || state.phase !== "plan") return;
+  const destIndex = state.leg + 1;
+  if (state.weather && state.weather.townIndex === destIndex) { render(); return; }
+  weatherLoading = true; render();
+  try {
+    state.weather = await fetchLiveWeather(TOWNS[destIndex]);
+  } catch (e) {
+    state.weather = seededWeather(state.seed, destIndex);
+  }
+  weatherLoading = false;
+  save(); render();
+}
+function chooseTransport(transportId){
+  if (!state || state.phase !== "plan" || weatherLoading) return;
+  const from = TOWNS[state.leg], dest = TOWNS[state.leg + 1];
+  if (transportId === "bus" && !from.bus) return;
+  if (transportId === "bike" && state.companion) return;
+  const c = legCosts(transportId);
+  if (c.money > state.money || c.energy >= state.energy) return;
+  playSfx(transportId);
+  state.money -= c.money; state.energy -= c.energy; state.morale = clamp(state.morale + c.morale, 0, 100);
+  if (petProfile()) state.morale = clamp(state.morale + petProfile().moraleLeg, 0, 100);
+  if (state.friends && state.friends.length) state.morale = clamp(state.morale + Math.min(2, state.friends.length), 0, 100);
+  const tname = TRANSPORTS.find(t => t.id === transportId).name;
+  logLine(tname + " from " + from.name + " to " + dest.name + ": $" + c.money + ", energy " + c.energy + ".");
+  const ev = travelEvent(state.seed, state.leg, transportId);
+  state.lastEvent = ev ? Object.assign({}, ev, { text: ev.text.replace("{name}", travelerNameEsc()) }) : null;
+  if (ev) {
+    if (ev.money) state.money += ev.money;
+    if (ev.energy) state.energy = clamp(state.energy + ev.energy, 0, 100);
+    if (ev.morale) state.morale = clamp(state.morale + ev.morale, 0, 100);
+    logLine(state.lastEvent.text);
+    playSfx(ev.good ? "good" : "bad", 0.55);
+  }
+  let petFired = false;
+  if (state.pet && !ev && hashNum(state.seed * 53 + state.leg * 7 + 2) < 0.25) {
+    petFired = true;
+    if (state.pet === "dog") {
+      state.energy = clamp(state.energy - 5, 0, 100);
+      state.morale = clamp(state.morale + 2, 0, 100);
+      state.lastEvent = { text: petName() + " found every mud puddle on the way into " + dest.name + ". The cleanup took real effort, and there are no regrets.", good:false };
+    } else {
+      state.energy = clamp(state.energy - 4, 0, 100);
+      state.morale = clamp(state.morale - 3, 0, 100);
+      state.lastEvent = { text: petName() + " slipped out of the carrier at a rest stop on the way into " + dest.name + ". Twenty anxious minutes later, back on a schedule all their own.", good:false };
+    }
+    logLine(state.lastEvent.text);
+    playSfx("bad", 0.55);
+  }
+  if (state.companion) {
+    const comp = state.companion;
+    if (comp.benefit === "morale") state.morale = clamp(state.morale + 8, 0, 100);
+    if (comp.benefit === "energy") state.energy = clamp(state.energy + 6, 0, 100);
+    state.companionFarewell = comp.name + " got out at " + dest.name + ", thanked " + travelerNameEsc() + " properly, and headed home.";
+    logLine(state.companionFarewell);
+    state.companion = null;
+  }
+  state.leg += 1; state.legsDone += 1;
+  if (!state.postcards) state.postcards = [0];
+  if (!state.postcards.includes(state.leg)) state.postcards.push(state.leg);
+  state.justCollected = state.leg;
+  state.lastVisitCount = recordVisit(state.leg);
+  playSfx("stamp", ev ? 1.2 : 0.6);
+  state.weather = null;
+  if (failCheck()) return;
+  if (state.leg === TOWNS.length - 1) {
+    endRun(true, "You reached " + finishName() + " with $" + state.money + ", energy " + state.energy + ", and morale " + state.morale + " to spare.");
+    return;
+  }
+  if (!ev && !petFired) {
+    const enc = encounterFor(state.seed, state.leg - 1);
+    if (enc) { state.encounter = enc; state.phase = "encounter"; save(); render(); return; }
+  }
+  state.phase = "mission";
+  save(); render();
+}
+function resolveEncounter(befriend){
+  if (!state || state.phase !== "encounter" || !state.encounter) return;
+  const c = state.encounter; state.encounter = null;
+  if (befriend) {
+    playSfx("stamp");
+    if (c.bonus.money) state.money += c.bonus.money;
+    if (c.bonus.energy) state.energy = clamp(state.energy + c.bonus.energy, 0, 100);
+    if (c.bonus.morale) state.morale = clamp(state.morale + c.bonus.morale, 0, 100);
+    if (!state.friends) state.friends = [];
+    state.friends.push(c.id);
+    album.critters[c.id] = (album.critters[c.id] || 0) + 1; saveAlbum();
+    state.lastEvent = { text: c.bonusText + " " + c.name + " the " + c.species + " rides with " + travelerNameEsc() + " for the rest of the trip, and joins the lifetime field friends collection.", good:true };
+    logLine(c.name + " the " + c.species + " joined the trip.");
+  } else {
+    playSfx("visit");
+    state.morale = clamp(state.morale + 1, 0, 100);
+    state.lastEvent = { text: "You shared a snack, wished " + c.name + " well, and left them to their day. (Morale +1)", good:true };
+    logLine("Met " + c.name + " the " + c.species + " and waved goodbye.");
+  }
+  state.phase = "mission";
+  save(); render();
+}
+function chooseMission(kind){
+  if (!state || state.phase !== "mission") return;
+  state.justCollected = null;
+  state.companionFarewell = null;
+  const town = TOWNS[state.leg];
+  if (kind === "job" && town.job) {
+    playSfx("job");
+    state.money += town.job.pay; state.energy = clamp(state.energy + town.job.energy, 0, 100);
+    state.jobsDone += 1; state.lastEvent = { text: town.job.text + " \"Thanks, " + travelerNameEsc() + ".\" (Earned $" + town.job.pay + ")", good:true };
+    logLine("Job in " + town.name + ": earned $" + town.job.pay + ".");
+  } else if (kind === "visit" && town.visit) {
+    if (state.money - town.visit.cost <= 0 && town.visit.cost > 0) return;
+    playSfx("visit");
+    state.money -= town.visit.cost; state.energy = clamp(state.energy + town.visit.energy, 0, 100);
+    const moraleGain = town.visit.morale + (petProfile() ? petProfile().moraleVisit : 0);
+    state.morale = clamp(state.morale + moraleGain, 0, 100);
+    state.visitsDone += 1; state.lastEvent = { text: town.visit.text + " \"Safe travels, " + travelerNameEsc() + ".\" (Morale +" + moraleGain + (petProfile() ? ", " + petName() + " included" : "") + ")", good:true };
+    logLine("Visit in " + town.name + ": morale +" + moraleGain + ".");
+  } else if (kind === "rest") {
+    const restCost = petProfile() ? petProfile().restCost : 10;
+    const restEnergy = petProfile() ? petProfile().restEnergy : 26;
+    if (state.money - restCost <= 0) return;
+    playSfx("rest");
+    state.money -= restCost; state.energy = clamp(state.energy + restEnergy, 0, 100); state.morale = clamp(state.morale + 6, 0, 100);
+    state.lastEvent = { text:"A real meal, a quiet room, and a full night of sleep in " + town.name + ". (Energy +" + restEnergy + ", morale +6, $" + restCost + (petProfile() ? ", pet-friendly room" : "") + ")", good:true };
+    logLine("Rested in " + town.name + ": energy +" + restEnergy + ".");
+  } else if (kind === "companion") {
+    const offer = companionFor(state.seed, state.leg);
+    if (!offer || state.money - 5 <= 0) return;
+    playSfx("visit");
+    state.money -= 5;
+    state.companion = offer;
+    state.lastEvent = { text: offer.name + ", " + offer.desc + ", will ride the next leg with you. \"Road is better with company, " + travelerNameEsc() + ".\" " + benefitText(offer), good:true };
+    logLine(offer.name + " rides along for the next leg (meal covered, $5).");
+  } else if (kind === "continue") {
+    playSfx("tap");
+    state.lastEvent = null;
+    logLine("You pressed on from " + town.name + " without a long stop.");
+  } else { return; }
+  if (failCheck()) return;
+  state.phase = "plan";
+  save(); render(); ensureWeather();
+}
+const TOWN_EXTRA = {
+  "Boston": { tag:"Port city on Massachusetts Bay · Massachusett homeland", tip:"" },
+  "Lowell": { tag:"Mill city on the Merrimack River · Pennacook homeland", tip:"The canal walk by the mills is worth ten quiet minutes before you leave." },
+  "Nashua": { tag:"River city on the state line · Pennacook homeland", tip:"Mine Falls Park sits right off the route if your legs want a stretch. No bus runs from here, so plan the next leg around that." },
+  "Manchester": { tag:"Amoskeag mill city on the Merrimack · Pennacook homeland", tip:"The mill buildings hide good lunch counters. Ask a museum guide where the staff eat." },
+  "Concord": { tag:"State capital on the Merrimack · Abenaki homeland", tip:"The next leg, Concord to Lebanon, is 65 miles, the longest of the trip. Do not start it tired or short on cash." },
+  "Lebanon": { tag:"Upper Valley town by the Connecticut River · Abenaki homeland", tip:"The hop to White River Junction is only 5 miles, the shortest of the trip. A good leg to save money on. No bus runs from here." },
+  "White River Junction": { tag:"Rail junction where two rivers meet · Abenaki homeland", tip:"Trains still run through here. When one is in the station, the cafe fills up fast." },
+  "Montpelier": { tag:"Smallest state capital in the country · Abenaki homeland", tip:"One long leg left: 39 miles to Burlington. Top up whichever resource is lowest before you go." },
+  "Burlington": { tag:"On Lake Champlain, Bitawbagok · Abenaki homeland", tip:"" },
+  "New York City": { tag:"Harbor city at the Hudson's mouth · Lenape homeland", tip:"" },
+  "Yonkers": { tag:"River city under the Palisades · Lenape homeland", tip:"The Palisades across the river are protected parkland. The view north is the valley announcing itself." },
+  "Tarrytown": { tag:"Village by the great bridge · Wappinger homeland", tip:"The bridge path is windy in almost any weather. Budget energy for it." },
+  "Beacon": { tag:"Arts town under Mount Beacon · Wappinger homeland", tip:"The next leg to Poughkeepsie is short. A good place to save money." },
+  "Poughkeepsie": { tag:"Mid-Hudson city · Wappinger homeland", tip:"The Walkway is high and exposed. Wind matters more up there than down here." },
+  "Kingston": { tag:"First capital of New York · Esopus homeland", tip:"No bus runs from Catskill, two stops ahead. Keep a car or bike plan in mind." },
+  "Catskill": { tag:"Village facing the escarpment · Mahican homeland", tip:"No bus service runs from here. The ride out is short, though: Hudson is 13 miles." },
+  "Hudson": { tag:"Small city of shops and galleries · Mahican homeland", tip:"One leg left: 32 miles to Albany. Top up whichever resource is lowest." },
+  "Albany": { tag:"State capital on the Hudson · Mahican and Mohawk homelands", tip:"" },
+  "Vergennes": { tag:"Vermont's smallest city · Abenaki homeland", tip:"No bus runs from here, and none from Ticonderoga either. The lake corridor rewards a car or strong legs." },
+  "Middlebury": { tag:"College town on Otter Creek · Abenaki homeland", tip:"The ride to Ticonderoga crosses the lake bridge at Crown Point. Wind off the water is real." },
+  "Ticonderoga": { tag:"Between two lakes · Mohawk and Abenaki homelands", tip:"No bus service runs from here. Lake George is 33 miles of Adirondack foothills." },
+  "Lake George": { tag:"Village on Andiatarocte · Mohawk homeland", tip:"Glens Falls is a short 17 miles. A good leg to travel cheap and rest there instead." },
+  "Glens Falls": { tag:"Falls city on the Hudson · Mohawk and Mahican homelands", tip:"Saratoga Springs is 18 miles. Save your rest for the springs if you can." },
+  "Saratoga Springs": { tag:"Mineral springs city · Mohawk and Mahican homelands", tip:"One long leg left: 38 miles to Albany. Do not start it tired or short on cash." }
+};
+/* One unique little scene per town postcard (Matthew's decision, Oct 31, 2026).
+   Flat, calm, factual motifs: harbor, mills, rivers, domes, a train, the lake. */
+const TOWN_SCENE = [
+  /* Boston: harbor skyline and a sailboat */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#bcd9ea"/><circle cx="84" cy="11" r="6" fill="#f4c542"/><g fill="#5b7186"><rect x="6" y="18" width="10" height="24"/><rect x="19" y="12" width="9" height="30"/><rect x="31" y="22" width="11" height="20"/><rect x="45" y="16" width="8" height="26"/></g><rect y="42" width="100" height="14" fill="#7fb2d9"/><path d="M66 50 l4 -9 4 9 Z" fill="#fff"/><rect x="63" y="50" width="14" height="2.4" fill="#8a5a14"/></svg>',
+  /* Lowell: brick mill, chimney, and canal */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#f2e3bb"/><rect x="16" y="16" width="52" height="26" fill="#b3613f"/><rect x="72" y="8" width="8" height="34" fill="#9c5133"/><g fill="#f7e8c8"><rect x="21" y="21" width="6" height="7"/><rect x="31" y="21" width="6" height="7"/><rect x="41" y="21" width="6" height="7"/><rect x="51" y="21" width="6" height="7"/><rect x="21" y="32" width="6" height="7"/><rect x="31" y="32" width="6" height="7"/><rect x="41" y="32" width="6" height="7"/><rect x="51" y="32" width="6" height="7"/></g><rect y="44" width="100" height="12" fill="#7fb2d9"/><path d="M8 44 Q50 34 92 44" fill="none" stroke="#8a6a14" stroke-width="2.4"/></svg>',
+  /* Nashua: river bend, trees, one small house */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#cfe6c0"/><path d="M0 30 Q40 20 100 34 V56 H0 Z" fill="#8fbc7a"/><path d="M0 46 Q36 38 100 48 V56 H0 Z" fill="#7fb2d9"/><g fill="#2e6b4f"><circle cx="16" cy="24" r="7"/><circle cx="30" cy="19" r="5.5"/><circle cx="84" cy="22" r="6.5"/></g><rect x="58" y="24" width="14" height="10" fill="#fdf6e3"/><path d="M56 24 L65 17 L74 24 Z" fill="#b3402e"/></svg>',
+  /* Manchester: the long Amoskeag mill row */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#e8ddc8"/><rect x="6" y="20" width="88" height="20" fill="#a5573a"/><rect x="46" y="10" width="9" height="30" fill="#93502f"/><g fill="#f7e8c8"><rect x="11" y="25" width="5" height="6"/><rect x="20" y="25" width="5" height="6"/><rect x="29" y="25" width="5" height="6"/><rect x="60" y="25" width="5" height="6"/><rect x="69" y="25" width="5" height="6"/><rect x="78" y="25" width="5" height="6"/><rect x="87" y="25" width="5" height="6"/></g><rect y="42" width="100" height="14" fill="#7fb2d9"/></svg>',
+  /* Concord: the gold dome */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#dcebf5"/><rect y="44" width="100" height="12" fill="#8fbc7a"/><rect x="30" y="28" width="40" height="16" fill="#fdfdf8"/><path d="M34 28 a16 12 0 0 1 32 0 Z" fill="#c99a2e"/><rect x="48.6" y="10" width="2.8" height="8" fill="#c99a2e"/><circle cx="50" cy="9" r="2" fill="#c99a2e"/><g fill="#5b7186"><rect x="36" y="33" width="5" height="7"/><rect x="48" y="33" width="5" height="7"/><rect x="59" y="33" width="5" height="7"/></g></svg>',
+  /* Lebanon: Upper Valley hills and a red barn */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#d7ecc9"/><circle cx="14" cy="10" r="6" fill="#f4c542"/><path d="M0 36 Q26 18 52 32 T100 30 V56 H0 Z" fill="#679c53"/><path d="M0 46 Q40 36 100 44 V56 H0 Z" fill="#4b7d43"/><rect x="58" y="32" width="20" height="13" fill="#b3402e"/><path d="M55 32 L68 23 L81 32 Z" fill="#7e2a1d"/><rect x="65" y="37" width="6" height="8" fill="#fdf6e3"/></svg>',
+  /* White River Junction: a train on the river bridge */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#cfe3ea"/><rect y="40" width="100" height="16" fill="#6a9ec4"/><path d="M0 38 H100 M6 38 L22 26 M22 38 L38 26 M38 38 L54 26 M54 38 L70 26 M70 38 L86 26 M86 38 L100 28" stroke="#54687a" stroke-width="2.2" fill="none"/><rect x="30" y="18" width="30" height="9" rx="2" fill="#b3402e"/><rect x="62" y="21" width="10" height="6" rx="1.5" fill="#54687a"/><g fill="#24312a"><circle cx="36" cy="29" r="2.6"/><circle cx="46" cy="29" r="2.6"/><circle cx="56" cy="29" r="2.6"/><circle cx="67" cy="29" r="2.2"/></g></svg>',
+  /* Montpelier: small dome over a market street */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#f6dfba"/><path d="M0 26 Q50 12 100 26 V56 H0 Z" fill="#8fbc7a"/><rect x="40" y="18" width="20" height="11" fill="#fdfdf8"/><path d="M43 18 a7 5.5 0 0 1 14 0 Z" fill="#c99a2e"/><g><path d="M10 44 l7 -8 7 8 Z" fill="#b3402e"/><path d="M30 46 l7 -8 7 8 Z" fill="#fdf6e3"/><path d="M58 46 l7 -8 7 8 Z" fill="#2e6b4f"/><path d="M78 44 l7 -8 7 8 Z" fill="#c99a2e"/></g><rect y="46" width="100" height="10" fill="#679c53"/></svg>',
+  /* Burlington: sunset over Lake Champlain and the Adirondacks */
+  '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#f7b267"/><circle cx="50" cy="30" r="8" fill="#fdf0c0"/><path d="M0 32 L18 20 L34 30 L52 18 L70 29 L86 22 L100 30 V40 H0 Z" fill="#7a6a9c"/><rect y="38" width="100" height="18" fill="#6a8caf"/><path d="M24 50 l3.4 -8 3.4 8 Z" fill="#fff"/><rect x="21.6" y="50" width="11" height="2" fill="#5b3a1e"/><path d="M70 52 l3 -7 3 7 Z" fill="#fff"/><rect x="67.8" y="52" width="9.4" height="1.8" fill="#5b3a1e"/></svg>'
+];
+const NEW_SCENES = {
+  "New York City": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#bcd9ea"/><circle cx="12" cy="10" r="5" fill="#f4c542"/><g fill="#54687c"><rect x="16" y="10" width="9" height="32"/><rect x="28" y="4" width="10" height="38"/><rect x="41" y="14" width="8" height="28"/><rect x="52" y="8" width="9" height="34"/><rect x="64" y="18" width="8" height="24"/></g><rect y="42" width="100" height="14" fill="#7fb2d9"/><path d="M84 50 l3.4 -8 3.4 8 Z" fill="#fff"/><rect x="81.6" y="50" width="11" height="2" fill="#8a5a14"/></svg>',
+  "Yonkers": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#cfe3ee"/><path d="M0 8 L26 8 L26 40 L0 40 Z" fill="#6d7f5e"/><path d="M4 14 L22 14 M4 22 L22 22 M4 30 L22 30" stroke="#87997a" stroke-width="3"/><rect y="40" width="100" height="16" fill="#7fb2d9"/><g fill="#7a5c3d"><rect x="62" y="26" width="12" height="14"/><rect x="78" y="30" width="10" height="10"/></g><path d="M58 26 L68 19 L78 26 Z" fill="#4c3a26"/></svg>',
+  "Tarrytown": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#cfe3ee"/><rect y="38" width="100" height="18" fill="#7fb2d9"/><path d="M0 30 H100" stroke="#54687c" stroke-width="4"/><path d="M14 30 V18 M50 30 V14 M86 30 V18" stroke="#54687c" stroke-width="3"/><path d="M14 18 L50 14 L86 18" stroke="#54687c" stroke-width="2" fill="none"/><rect x="66" y="24" width="6" height="14" fill="#c8452c"/><rect x="65" y="21" width="8" height="3" fill="#8a2c1c"/></svg>',
+  "Beacon": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#d8e8dd"/><path d="M0 34 L30 12 L52 26 L74 10 L100 30 V56 H0 Z" fill="#7d9b76"/><path d="M44 34 q3 6 0 12 M50 34 q3 6 0 12 M56 34 q3 6 0 12" stroke="#eaf4fb" stroke-width="3" fill="none"/><g fill="#a5573f"><rect x="8" y="30" width="12" height="12"/><rect x="24" y="33" width="10" height="9"/></g><rect y="46" width="100" height="10" fill="#b9ac8d"/></svg>',
+  "Poughkeepsie": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#cfe3ee"/><rect y="40" width="100" height="16" fill="#7fb2d9"/><path d="M0 26 H100" stroke="#3f4c5c" stroke-width="5"/><path d="M10 26 V40 M32 26 V40 M54 26 V40 M76 26 V40 M94 26 V40" stroke="#3f4c5c" stroke-width="3"/><circle cx="88" cy="10" r="5" fill="#f4c542"/></svg>',
+  "Kingston": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#dfe9f2"/><path d="M0 20 L50 12 L100 20 V30 L0 30 Z" fill="#8fa5b8"/><rect y="34" width="100" height="22" fill="#7fb2d9"/><rect x="44" y="18" width="7" height="16" fill="#c8452c"/><rect x="43" y="15" width="9" height="3" fill="#8a2c1c"/><g fill="#7a5c3d"><rect x="10" y="24" width="11" height="10"/><rect x="76" y="24" width="11" height="10"/></g></svg>',
+  "Catskill": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#dcead9"/><path d="M0 38 L22 16 L40 30 L58 12 L78 28 L100 18 V56 H0 Z" fill="#5f7d5a"/><path d="M0 46 L100 42 V56 H0 Z" fill="#87a87e"/><g fill="#4c3a26"><rect x="12" y="40" width="10" height="8"/></g><circle cx="86" cy="9" r="5" fill="#f4c542"/></svg>',
+  "Hudson": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#e8e0cd"/><g fill="#a5573f"><rect x="6" y="26" width="12" height="16"/><rect x="21" y="22" width="11" height="20"/><rect x="35" y="28" width="12" height="14"/></g><rect y="42" width="100" height="14" fill="#7fb2d9"/><rect x="76" y="20" width="7" height="22" fill="#e8e2d2"/><rect x="75" y="16" width="9" height="4" fill="#c8452c"/></svg>',
+  "Albany": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#cfe3ee"/><g fill="#7d6a4f"><rect x="40" y="12" width="20" height="30"/></g><path d="M38 12 L50 4 L62 12 Z" fill="#54687c"/><g fill="#54687c"><rect x="14" y="20" width="10" height="22"/><rect x="70" y="16" width="8" height="26" rx="4"/><rect x="82" y="24" width="9" height="18"/></g><rect y="42" width="100" height="14" fill="#7fb2d9"/></svg>',
+  "Vergennes": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#d8e8dd"/><g fill="#a5573f"><rect x="8" y="18" width="16" height="20"/><rect x="28" y="24" width="12" height="14"/></g><path d="M52 20 q4 8 0 16 M60 20 q4 8 0 16 M68 20 q4 8 0 16" stroke="#eaf4fb" stroke-width="4" fill="none"/><rect y="38" width="100" height="18" fill="#7fb2d9"/></svg>',
+  "Middlebury": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#dfe9f2"/><path d="M0 36 L28 20 L50 30 L74 18 L100 32 V56 H0 Z" fill="#7d9b76"/><g fill="#e8e2d2"><rect x="44" y="16" width="12" height="18"/></g><path d="M43 16 L50 8 L57 16 Z" fill="#54687c"/><path d="M62 38 q3 6 0 12 M70 38 q3 6 0 12" stroke="#eaf4fb" stroke-width="3" fill="none"/><rect y="46" width="100" height="10" fill="#7fb2d9"/></svg>',
+  "Ticonderoga": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#d8e8dd"/><path d="M0 30 L20 22 L34 30 L50 20 L66 30 L82 24 L100 30 V40 H0 Z" fill="#8a7a5c"/><g fill="#6b5b40"><rect x="14" y="30" width="10" height="10"/><rect x="42" y="28" width="12" height="12"/><rect x="72" y="30" width="10" height="10"/></g><rect y="40" width="100" height="16" fill="#7fb2d9"/></svg>',
+  "Lake George": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#f2d8ae"/><path d="M0 30 L24 16 L46 28 L68 14 L100 28 V38 H0 Z" fill="#7a6a9c"/><rect y="36" width="100" height="20" fill="#6a8caf"/><rect x="38" y="30" width="24" height="7" fill="#e8e2d2"/><rect x="44" y="24" width="12" height="6" fill="#c8452c"/><path d="M50 24 v-6" stroke="#4c3a26" stroke-width="2"/></svg>',
+  "Glens Falls": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#dfe9f2"/><path d="M0 18 H100 V26 H0 Z" fill="#54687c"/><path d="M30 26 q4 8 0 16 M44 26 q4 8 0 16 M58 26 q4 8 0 16 M72 26 q4 8 0 16" stroke="#eaf4fb" stroke-width="4" fill="none"/><rect y="42" width="100" height="14" fill="#7fb2d9"/><g fill="#5b4a36"><path d="M0 26 L16 34 L16 42 L0 42 Z"/><path d="M100 26 L84 34 L84 42 L100 42 Z"/></g></svg>',
+  "Saratoga Springs": '<svg viewBox="0 0 100 56" class="scene"><rect width="100" height="56" fill="#dcead9"/><g fill="#e8e2d2"><rect x="36" y="22" width="28" height="14"/></g><path d="M33 22 L50 12 L67 22 Z" fill="#a5573f"/><path d="M50 36 v8 M42 40 q2 4 0 8 M58 40 q2 4 0 8" stroke="#7fb2d9" stroke-width="3" fill="none"/><g fill="#5f7d5a"><rect x="8" y="30" width="4" height="14"/><circle cx="10" cy="26" r="7"/><rect x="86" y="30" width="4" height="14"/><circle cx="88" cy="26" r="7"/></g><rect y="48" width="100" height="8" fill="#87a87e"/></svg>'
+};
+const SCENE_BY_NAME = {};
+ROUTE_BB_TOWNS.forEach((t, i) => { SCENE_BY_NAME[t.name] = TOWN_SCENE[i]; });
+Object.keys(NEW_SCENES).forEach(k => { SCENE_BY_NAME[k] = NEW_SCENES[k]; });
+function fmtSigned(v){ return (v > 0 ? "+" : "") + v; }
+function mapSVG(){
+  const W = 360, H = 300, pad = 34;
+  const lons = TOWNS.map(t => t.lon), lats = TOWNS.map(t => t.lat);
+  const minLon = Math.min(...lons) - 0.15, maxLon = Math.max(...lons) + 0.15;
+  const minLat = Math.min(...lats) - 0.12, maxLat = Math.max(...lats) + 0.12;
+  const px = t => pad + (t.lon - minLon) / (maxLon - minLon) * (W - pad * 2);
+  const py = t => H - pad - (t.lat - minLat) / (maxLat - minLat) * (H - pad * 2);
+  let s = '<svg class="map" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stylized route map: " + routeMeta().name>';
+  const pts = TOWNS.map(t => px(t).toFixed(1) + "," + py(t).toFixed(1)).join(" ");
+  s += '<polyline points="' + pts + '" fill="none" stroke="#b9ac8d" stroke-width="3" stroke-dasharray="6 5"/>';
+  if (state && state.leg > 0) {
+    const done = TOWNS.slice(0, state.leg + 1).map(t => px(t).toFixed(1) + "," + py(t).toFixed(1)).join(" ");
+    s += '<polyline points="' + done + '" fill="none" stroke="#2e6b4f" stroke-width="4"/>';
+  }
+  TOWNS.forEach((t, i) => {
+    const cur = state && i === state.leg && state.phase !== "over";
+    const doneT = state && i < state.leg;
+    const fill = cur ? "#c99a2e" : doneT ? "#2e6b4f" : "#fffdf7";
+    const stroke = cur ? "#8a6a14" : "#2e6b4f";
+    s += '<circle cx="' + px(t) + '" cy="' + py(t) + '" r="' + (cur ? 9 : 6.5) + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2.5" class="' + (cur ? "pulse" : "") + '"/>';
+    let anchor = px(t) > W - 90 ? "end" : "start";
+    let dx = anchor === "end" ? -11 : 11;
+    let dy = 4;
+    if (t.name === "Lebanon") { anchor = "start"; dx = 11; dy = -10; }
+    if (t.name === "White River Junction") { anchor = "end"; dx = -11; dy = 16; }
+    if (t.name === "Lowell") { anchor = "end"; dx = -11; dy = 4; }
+    s += '<text class="maplabel' + (doneT || cur ? "" : " dim") + '" x="' + (px(t) + dx) + '" y="' + (py(t) + dy) + '" text-anchor="' + anchor + '">' + t.name + "</text>";
+  });
+  s += "</svg>";
+  return s;
+}
+function resourcesHTML(){
+  const bar = (v) => '<div class="bar' + (v <= 25 ? " low" : "") + '"><div style="width:' + clamp(v, 0, 100) + '%"></div></div>';
+  return '<div class="resources">' +
+    '<div class="res"><div class="label">Money</div><div class="value">$' + state.money + "</div>" + bar(clamp(state.money, 0, 100)) + "</div>" +
+    '<div class="res"><div class="label">Energy</div><div class="value">' + state.energy + "</div>" + bar(state.energy) + "</div>" +
+    '<div class="res"><div class="label">Morale</div><div class="value">' + state.morale + "</div>" + bar(state.morale) + "</div></div>";
+}
+function settingsHTML(){
+  const row = (key, label) => '<div class="setrow"><label for="set-' + key + '">' + label + '</label>' +
+    '<input type="range" id="set-' + key + '" min="0" max="100" step="1" value="' + settings[key] + '" data-setting="' + key + '">' +
+    '<span class="pct" id="pct-' + key + '">' + settings[key] + '%</span></div>';
+  return '<div class="card"><h3>Settings</h3>' +
+    '<div class="setrow"><label>Road music</label><button class="plain" data-action="music-toggle">' + (settings.musicOn ? "Music: on" : "Music: off") + '</button>' +
+    '<span class="small">Gentle, and on by default. It starts with your first tap, which is a browser rule.</span></div>' +
+    row("master", "Master volume") + row("music", "Music volume") + row("sfx", "Effects volume") +
+    '<div class="setrow"><label>All sound</label><button class="plain" data-action="sound">' + (settings.soundOn ? "Sound: on" : "Sound: off") + "</button></div></div>";
+}
+function albumHTML(routeId, withCritters){
+  const rid = routeId || "bb";
+  const routeTowns = ROUTES[rid].towns;
+  const visits = album.visits || {};
+  const vcount = t => visits[rid + ":" + t.name] || 0;
+  const townsGot = routeTowns.filter(t => vcount(t) > 0).length;
+  const totalVisits = routeTowns.reduce((a, t) => a + vcount(t), 0);
+  let tiles = "";
+  routeTowns.forEach((t, i) => {
+    const count = vcount(t);
+    const has = count > 0;
+    const extra = TOWN_EXTRA[t.name] || { tag:"" };
+    const shortTag = extra.tag.split("·")[0].trim();
+    let stamps = "";
+    if (has) {
+      const dots = Math.min(count, 6);
+      for (let d = 0; d < dots; d++) stamps += '<span class="stampdot"></span>';
+      stamps = '<div>' + stamps + '</div><div class="visits">' + (count === 1 ? "Visited once" : "Visited " + count + " times") + "</div>";
+    }
+    tiles += '<div class="pcard ' + (has ? "got" : "miss") + '">' + (has ? (SCENE_BY_NAME[t.name] || "") : "") + '<div class="when">Stop ' + (i + 1) + '</div>' +
+      '<div class="nm">' + (has ? t.name + ", " + t.state : t.name) + '</div>' +
+      '<div class="tg">' + (has ? shortTag : "Not yet collected") + "</div>" + stamps + "</div>";
+  });
+  const crits = album.critters || {};
+  const critList = CRITTERS.filter(c => (crits[c.id] || 0) > 0);
+  const critHTML = (withCritters && critList.length) ? '<p class="small" style="margin-top:10px"><b>Field friends collected:</b> ' + critList.map(c => c.icon + " " + c.name + " the " + c.species + (crits[c.id] > 1 ? " (met " + crits[c.id] + " times)" : "")).join(" · ") + "</p>" : "";
+  return '<div class="card"><h3>Postcard album · ' + ROUTES[rid].name + ' · ' + townsGot + ' of ' + routeTowns.length + ' towns · ' + totalVisits + ' visits</h3>' +
+    '<div class="album">' + tiles + "</div>" + critHTML +
+    '<p class="small" style="margin-top:8px">Your album is kept for good, across every trip. Revisiting a town adds another stamp to its postcard.</p></div>';
+}
+function render(){
+  bindRoute();
+  const app = document.getElementById("app");
+  if (state && !state.postcards) { state.postcards = []; for (let i = 0; i <= state.leg; i++) state.postcards.push(i); }
+  if (!state) {
+    const saved = load();
+    app.innerHTML =
+      '<div class="card mapcard"><div class="stampdeco"><div class="big">⛰️</div>USA</div>' +
+      '<h2>Town by Town</h2>' +
+      '<p style="font-style:italic; color:#7a6748; margin-top:-4px">Greetings from the road.</p>' +
+      '<p>Three routes, real weather, one traveler. Every route stands on its own, and they also chain: finish one and you can continue into the next with the same traveler and pet. Each trip starts with its own stake, energy 90, and morale 85. If any one of the three runs out, that trip ends.</p>' +
+      '<p class="town-note">Travel by car, bicycle, or bus where it runs. Along the way, pick up paying jobs, make friendly visits, or rest. Weather is checked live for the next town before you choose how to travel, because that is the choice that matters.</p>' +
+      '<p class="small">These lands are the homelands of the Abenaki, Pennacook, Massachusett, Lenape, Wappinger, Esopus, Mahican, and Mohawk peoples, whose communities are part of these places today. The towns and people on these routes are portrayed as they are: neighbors, workers, guides, and friends.</p>' +
+      (saved ? '<button class="choice primary" data-action="continue-run">Continue your trip<span class="sub">You left off in ' + (townsFor(saved.routeId || "bb", saved.dir || "n")[saved.leg] || {}).name + " with $" + saved.money + ", energy " + saved.energy + ", morale " + saved.morale + '.</span></button>' : "") +
+      introRouteButtons(saved) +
+      '<div class="rowbtns"><button class="plain" data-action="sound">' + (settings.soundOn ? "Sound: on" : "Sound: off") + "</button></div></div>" +
+      '<div class="card"><h3>First route map</h3>' + mapSVG() + "</div>" +
+      albumsIntroHTML() + settingsHTML();
+    return;
+  }
+  let h = "";
+  if (state.traveler && state.phase !== "setup") h += '<p class="small" style="margin:0 0 8px">🧳 <b>' + esc(state.traveler.name) + "</b> · " + esc(state.traveler.pronouns) + (petProfile() ? " · traveling with " + petName() + " the " + petProfile().kind : "") + "</p>";
+  h += resourcesHTML();
+  h += '<div class="card mapcard"><div class="stampdeco"><div class="big">⛰️</div>' + TOWNS[TOWNS.length - 1].state + '<br>USA</div>' +
+    '<div class="postmark">' + TOWNS[state.leg].state + ' MAIL<br>OCT 31</div>' + mapSVG() +
+    '<p class="small" style="margin-top:6px">Leg ' + Math.min(state.legsDone + 1, legsTotal()) + ' of ' + legsTotal() + '. Traveled ' + state.legsDone + ' of ' + legsTotal() + ' legs. Jobs done: ' + state.jobsDone + ". Visits: " + state.visitsDone + ".</p></div>";
+  if (state.phase === "setup") {
+    const chip = (kind, val, label) => '<button class="chipbtn' + (draft[kind] === val ? " sel" : "") + '" data-chip="' + kind + '" data-value="' + val + '">' + label + "</button>";
+    h += '<div class="card"><h2>Who is traveling?</h2>' +
+      '<p>Set yourself up first. Your name, gender, and pronouns are yours to set, and the game will use them and remember them for next time.</p>' +
+      (state.setupError ? '<div class="eventbox"><b>One moment:</b> ' + state.setupError + "</div>" : "") +
+      '<div class="fldlabel">Your name</div>' +
+      '<input class="txtin" id="traveler-name" type="text" maxlength="30" placeholder="Traveler" value="' + esc(draft.name) + '">' +
+      '<div class="fldlabel">Gender</div><div class="chiprow">' +
+      chip("gender", "Woman", "Woman") + chip("gender", "Man", "Man") + chip("gender", "Nonbinary", "Nonbinary") + chip("gender", "custom", "My own words") + "</div>" +
+      (draft.gender === "custom" ? '<input class="txtin" id="traveler-gender-custom" type="text" maxlength="30" placeholder="Describe your gender" value="' + esc(draft.genderCustom) + '">' : "") +
+      '<div class="fldlabel">Pronouns</div><div class="chiprow">' +
+      chip("pronouns", "she/her", "she/her") + chip("pronouns", "he/him", "he/him") + chip("pronouns", "they/them", "they/them") + chip("pronouns", "custom", "My own words") + "</div>" +
+      (draft.pronouns === "custom" ? '<input class="txtin" id="traveler-pronouns-custom" type="text" maxlength="30" placeholder="Your pronouns" value="' + esc(draft.pronounsCustom) + '">' : "") +
+      '<div class="fldlabel" style="margin-top:16px">And who else?</div>' +
+      '<p style="margin-top:2px">You travel solo either way. A pet changes the math of the whole trip. Pick one (or not), name them if you bring one, then start.</p>' +
+      '<button class="choice act' + (draft.pet === "dog" ? " sel" : "") + '" data-petpick="dog"><span class="ic">🐕</span><span class="tx">Bring a dog<span class="sub">Morale +3 every leg, visits warmer (+3). Drawbacks: $3 per leg for food and supplies, rest $13, and muddy paws happen.</span></span><span class="tag">More heart<span>more costs</span></span></button>' +
+      '<button class="choice act' + (draft.pet === "cat" ? " sel" : "") + '" data-petpick="cat"><span class="ic">🐈</span><span class="tx">Bring a cat<span class="sub">Morale +2 every leg, visits warmer (+2), and a professional napper: rest restores +30 energy. Drawbacks: $2 per leg for food and litter, rest $12, and carrier escapes happen.</span></span><span class="tag">Calmer<span>lower costs</span></span></button>' +
+      '<button class="choice act' + (draft.pet === "none" ? " sel" : "") + '" data-petpick="none"><span class="ic">🧭</span><span class="tx">Travel without a pet<span class="sub">Leaner, cheaper, quieter. Just you and the road.</span></span><span class="tag">Free<span>no extras</span></span></button>' +
+      (draft.pet === "dog" || draft.pet === "cat" ? '<div class="fldlabel">Name your ' + draft.pet + '</div>' +
+        '<input class="txtin" id="pet-name" type="text" maxlength="24" value="' + esc(draft.petName) + '">' +
+        '<div class="rowbtns"><button class="plain" data-action="reroll-pet-name">🎲 Another suggestion</button></div>' +
+        '<p class="small">A suggestion is rolled for you. Keep it, roll another, or type any name you like. It is remembered for next trip.</p>' : "") +
+      '<button class="choice primary" data-action="start-trip">Start the trip<span class="sub">From ' + TOWNS[0].name + ', with $' + routeMeta().startMoney + ' and a plan to reach ' + finishName() + '.</span></button></div>';
+  } else if (state.phase === "over") {
+    const won = state.result === "win";
+    h += '<div class="card result"><div class="big">' + (won ? "You made it to " + finishName() + "." : "The trip ends here.") + "</div>" +
+      (won ? '<div class="wxnote" style="text-align:left">📬 <b>A postcard home:</b> ' + winNoteFor() + ' Signed, ' + esc(state.traveler ? state.traveler.name : "Traveler") + '.</div>' : "") +
+      (won && state.traveler ? "<p><b>Well done, " + esc(state.traveler.name) + ".</b></p>" : "") +
+      "<p>" + state.reason + "</p>" +
+      '<p class="small">Legs traveled: ' + state.legsDone + " of " + legsTotal() + ". Jobs done: " + state.jobsDone + ". Visits made: " + state.visitsDone + ". Postcards: " + (state.postcards ? state.postcards.length : 0) + " of " + TOWNS.length + (won && state.postcards && state.postcards.length === TOWNS.length ? ". Album complete." : ".") + "</p>" +
+      (state.friends && state.friends.length ? '<p class="small">Field friends who rode along: ' + state.friends.map(id => { const cc = critterById(id); return cc ? cc.icon + " " + cc.name + " the " + cc.species : id; }).join(", ") + ". They head home from here, with stories.</p>" : "") +
+      (won && chainNextFor(state) ? '<button class="choice primary" data-action="continue-chain">Continue the journey<span class="sub">' + chainNextFor(state).label + '. Same traveler, same pet, fresh resources.</span></button>' : "") +
+      '<button class="choice' + (won && chainNextFor(state) ? "" : " primary") + '" data-action="new-run">Start a new trip<span class="sub">A fresh start on this route, with a new day of weather.</span></button></div>';
+  } else if (state.phase === "encounter") {
+    const c = state.encounter;
+    const town = TOWNS[state.leg];
+    const extra = TOWN_EXTRA[town.name];
+    h += '<div class="card"><div class="townhead"><div><div class="small" style="letter-spacing:1px; font-weight:700">A FIELD FRIEND NEAR ' + town.name.toUpperCase() + '</div><h3 style="margin:2px 0">' + c.icon + " " + c.name + " the " + c.species + '</h3><div class="small">' + extra.tag + '</div></div></div>' +
+      '<div class="factline"><span class="chip">🐾 Collectible</span><span class="chip">Lifetime collection</span></div>' +
+      '<p>' + c.text + '</p><p>It seems to have decided that <b>' + esc(travelerName()) + '</b> is good company.</p>' +
+      '<button class="choice act" data-action="friend-befriend"><span class="ic">' + c.icon + '</span><span class="tx">Befriend ' + c.name + '<span class="sub">' + c.bonusText + ' While along, field friends add +1 morale per leg (up to +2).</span></span><span class="tag">Collect<span>rides along</span></span></button>' +
+      '<button class="choice act" data-action="friend-leave"><span class="ic">👋</span><span class="tx">Wave and let them be<span class="sub">A shared snack and a proper goodbye. They stay wild, you stay kind.</span></span><span class="tag">Morale +1<span>no collection</span></span></button></div>';
+  } else if (state.phase === "mission") {
+    const town = TOWNS[state.leg];
+    const extra = TOWN_EXTRA[town.name] || { tag:"", tip:"" };
+    const next = TOWNS[state.leg + 1];
+    h += '<div class="card"><div class="townhead"><h2>Welcome to ' + town.name + ", " + town.state + '</h2><p>' + extra.tag + '</p></div>' +
+      '<div class="chips"><span class="fchip">Leg ' + state.legsDone + ' of ' + legsTotal() + ' done</span>' +
+      '<span class="fchip">Next: ' + next.name + ", " + next.dist + ' mi</span>' +
+      '<span class="fchip">' + (town.bus ? "Bus runs from here" : "No bus from here") + '</span></div>' +
+      '<p class="town-note">' + town.note + "</p>";
+    if (state.justCollected === state.leg) {
+      if ((state.lastVisitCount || 1) > 1) h += '<div class="wxnote">📬 <b>Postcard stamped again:</b> this is visit ' + state.lastVisitCount + " to " + town.name + ". Its postcard in your album carries another stamp now.</div>";
+      else h += '<div class="wxnote">📬 <b>New postcard collected:</b> ' + town.name + ", " + town.state + ". It is in your album below, and it stays there for good.</div>";
+    }
+    if (state.companionFarewell) h += '<div class="eventbox good"><b>Farewell:</b> ' + state.companionFarewell + "</div>";
+    if (state.lastEvent) h += '<div class="eventbox' + (state.lastEvent.good ? " good" : "") + '"><b>On the road:</b> ' + state.lastEvent.text + "</div>";
+    h += "<p><b>Stay a while, or press on?</b> The next leg leaves from here whenever you are ready.</p>";
+    if (town.job) h += '<button class="choice act" data-action="mission-job"><span class="ic">💼</span><span class="tx">' + town.job.title + '<span class="sub">Work here in ' + town.name + '. Your call, no pressure.</span></span><span class="tag">+$' + town.job.pay + "<span>energy " + town.job.energy + "</span></span></button>";
+    if (town.visit) h += '<button class="choice act" data-action="mission-visit"><span class="ic">🤝</span><span class="tx">' + town.visit.title + '<span class="sub">A friendly stop in ' + town.name + '.</span></span><span class="tag">Morale +' + (town.visit.morale + (petProfile() ? petProfile().moraleVisit : 0)) + "<span>" + (town.visit.cost ? "$" + town.visit.cost + " · " : "Free · ") + "energy " + town.visit.energy + "</span></span></button>";
+    const offer = companionFor(state.seed, state.leg);
+    if (offer) h += '<button class="choice act" data-action="mission-companion" ' + (state.money - 5 <= 0 ? "disabled" : "") + '><span class="ic">🧳</span><span class="tx">Ride along: ' + offer.name + ", " + offer.desc + '<span class="sub">' + offer.offer + ' Cover their meal ($5). One leg only, and not on a bicycle.</span></span><span class="tag">$5<span>one leg</span></span></button>';
+    const restCost = petProfile() ? petProfile().restCost : 10;
+    const restEnergy = petProfile() ? petProfile().restEnergy : 26;
+    h += '<button class="choice act" data-action="mission-rest" ' + (state.money - restCost <= 0 ? "disabled" : "") + '><span class="ic">🛏️</span><span class="tx">Rest, eat well, and sleep<span class="sub">A real meal and a quiet ' + (state.pet ? "pet-friendly " : "") + 'room in ' + town.name + '.</span></span><span class="tag">Energy +' + restEnergy + '<span>$' + restCost + ' · morale +6</span></span></button>';
+    h += '<button class="choice act" data-action="mission-continue"><span class="ic">🧭</span><span class="tx">Press on now<span class="sub">No stop, no cost. On to the next leg.</span></span><span class="tag">Free<span>leave now</span></span></button>';
+    if (extra.tip) h += '<div class="tipbox">💡 <b>Local tip:</b> ' + extra.tip + "</div>";
+    h += "</div>";
+  } else if (state.phase === "plan") {
+    const from = TOWNS[state.leg], dest = TOWNS[state.leg + 1];
+    h += '<div class="card"><h2>' + from.name + " to " + dest.name + "</h2>" +
+      '<p class="small">' + dest.dist + ' miles. First, the weather waiting for you in ' + dest.name + ":</p>";
+    if (weatherLoading || !state.weather) {
+      h += '<p><b>Checking live weather for ' + dest.name + "...</b></p>";
+    } else {
+      const w = state.weather;
+      h += '<div class="wxnote"><div style="font-size:19px"><b>' + (WEATHER_ICON[w.category] || "") + " " + w.label + '</b> <span class="small">(' + (w.source === "live" ? "live from Open-Meteo" : "offline forecast, saved for this run") + ")</span></div>" +
+        '<div class="small">Weather report from ' + dest.name + ', written before you choose. That order is the game.</div></div>' +
+        '<div class="weather-grid">' +
+        '<div class="cell"><div class="v">' + w.tempF + '°F</div><div class="k">Temp</div></div>' +
+        '<div class="cell"><div class="v">' + w.windMph + '</div><div class="k">Wind mph</div></div>' +
+        '<div class="cell"><div class="v">' + w.precipMm + '</div><div class="k">Precip mm</div></div>' +
+        '<div class="cell"><div class="v">' + dest.dist + '</div><div class="k">Miles</div></div></div>';
+    }
+    h += "</div>";
+    if (state.lastEvent && state.legsDone > 0 && !weatherLoading) {
+      /* lastEvent is shown on the mission screen; plan screen keeps the log instead */
+    }
+    if (state.companion) h += '<div class="card"><div class="wxnote">🧳 <b>' + state.companion.name + ' is riding this leg with you.</b> ' + benefitText(state.companion) + ' One limit: no bicycle with a passenger.</div></div>';
+    h += '<div class="card"><h3>How will you travel?</h3>';
+    TRANSPORTS.forEach(t => {
+      const isBus = t.id === "bus";
+      const noBus = isBus && !from.bus;
+      const c = state.weather ? legCosts(t.id) : null;
+      let sub = "", disabled = "", tag = "";
+      if (t.id === "bike" && state.companion) { sub = state.companion.name + " can't ride along on a bicycle."; disabled = "disabled"; tag = "No room<span>for two</span>"; }
+      else if (noBus) { sub = "No bus service runs from " + from.name + " on this route."; disabled = "disabled"; tag = "No service<span>from here</span>"; }
+      else if (weatherLoading || !c) { sub = "Waiting on the weather check."; disabled = "disabled"; tag = "Checking<span>weather</span>"; }
+      else {
+        sub = c.notes.length ? c.notes.join(" ") : (t.id === "car" ? "Fast, and fuel is the cost." : t.id === "bike" ? "Nearly free, and the weather lands on you." : "Mid cost, mid effort, someone else drives.");
+        tag = "$" + c.money + "<span>energy " + c.energy + " · morale " + fmtSigned(c.morale) + "</span>";
+        if (c.money > state.money) { sub += " Not enough money."; disabled = "disabled"; }
+        else if (c.energy >= state.energy) { sub += " That would leave you at zero energy."; disabled = "disabled"; }
+      }
+      h += '<button class="choice act" data-action="travel-' + t.id + '" ' + disabled + '><span class="ic">' + t.icon + '</span><span class="tx">' + t.name + '<span class="sub">' + sub + '</span></span><span class="tag">' + tag + "</span></button>";
+    });
+    h += '<div class="rowbtns"><button class="plain" data-action="sound">' + (settings.soundOn ? "Sound: on" : "Sound: off") + '</button>' +
+      '<button class="plain" data-action="abandon">Abandon trip</button></div></div>';
+  }
+  h += albumHTML(state.routeId, true);
+  h += settingsHTML();
+  if (state.log.length) {
+    h += '<div class="card"><h3>Trip log</h3><ul class="log">' + state.log.map(l => "<li>" + l + "</li>").join("") + "</ul></div>";
+  }
+  app.innerHTML = h;
+}
+document.getElementById("app").addEventListener("input", (e) => {
+  if (e.target.id === "traveler-name") { draft.name = e.target.value; return; }
+  if (e.target.id === "pet-name") { draft.petName = e.target.value; return; }
+  if (e.target.id === "traveler-gender-custom") { draft.genderCustom = e.target.value; return; }
+  if (e.target.id === "traveler-pronouns-custom") { draft.pronounsCustom = e.target.value; return; }
+  const key = e.target.getAttribute && e.target.getAttribute("data-setting");
+  if (!key || !(key in settings)) return;
+  settings[key] = parseInt(e.target.value, 10) || 0;
+  saveSettings(); applyVolumes();
+  const pct = document.getElementById("pct-" + key);
+  if (pct) pct.textContent = settings[key] + "%";
+});
+document.getElementById("app").addEventListener("click", (e) => {
+  const pickEl = e.target.closest("[data-petpick]");
+  if (pickEl) {
+    const val = pickEl.getAttribute("data-petpick");
+    if (draft.pet !== val) {
+      draft.pet = val;
+      if (val === "dog" || val === "cat") {
+        if (draft.petNameFor !== val) { draft.petName = (settings.petNames && settings.petNames[val]) || rollPetName(val); draft.petNameFor = val; }
+      }
+    }
+    playSfx("tap");
+    render();
+    return;
+  }
+  const chipEl = e.target.closest("[data-chip]");
+  if (chipEl) {
+    const kind = chipEl.getAttribute("data-chip");
+    draft[kind] = chipEl.getAttribute("data-value");
+    playSfx("tap");
+    render();
+    return;
+  }
+  const btn = e.target.closest("[data-action]");
+  if (!btn || btn.disabled) return;
+  const a = btn.getAttribute("data-action");
+  ensureAudioSession();
+  if (a === "new-run") { localStorage.removeItem(SAVE_KEY); newRun(btn.getAttribute("data-route") || (state && state.routeId) || "bb", { dir: btn.getAttribute("data-dir") || "n" }); }
+  else if (a === "continue-chain") { const nx = chainNextFor(state); if (nx) newRun(nx.route, { dir: nx.dir, carry: { traveler: state.traveler, pet: state.pet, petName: state.petName } }); }
+  else if (a === "continue-run") { state = load(); render(); ensureWeather(); }
+  else if (a === "sound") { settings.soundOn = !settings.soundOn; saveSettings(); applyVolumes(); if (settings.soundOn) { sndTap(); startMusic(); } else stopMusic(); render(); }
+  else if (a === "music-toggle") { settings.musicOn = !settings.musicOn; saveSettings(); if (settings.musicOn) { startMusic(); } else stopMusic(); render(); }
+  else if (a === "abandon") { state = null; try { localStorage.removeItem(SAVE_KEY); } catch (err) {} render(); }
+  else if (a === "travel-car") chooseTransport("car");
+  else if (a === "travel-bike") chooseTransport("bike");
+  else if (a === "travel-bus") chooseTransport("bus");
+  else if (a === "reroll-pet-name") { if (draft.pet === "dog" || draft.pet === "cat") { draft.petName = rollPetName(draft.pet, draft.petName); playSfx("tap"); render(); } }
+  else if (a === "start-trip") {
+    const hasPet = draft.pet === "dog" || draft.pet === "cat";
+    const tName = (draft.name || "").trim();
+    const pName = hasPet ? ((draft.petName || "").trim() || rollPetName(draft.pet)) : "";
+    if (nameBlocked(tName) || nameBlocked(pName)) {
+      state.setupError = "That name is not a fit for this trip. Try another?";
+      if (nameBlocked(pName)) draft.petName = rollPetName(draft.pet);
+      if (nameBlocked(tName)) draft.name = "";
+      playSfx("bad");
+      save(); render();
+      return;
+    }
+    state.setupError = null;
+    commitIdentity();
+    state.pet = hasPet ? draft.pet : null;
+    state.petName = hasPet ? pName : null;
+    if (hasPet) { settings.petNames[draft.pet] = pName; saveSettings(); }
+    state.phase = "plan";
+    playSfx(hasPet ? "visit" : "tap");
+    save(); render(); ensureWeather();
+  }
+  else if (a === "friend-befriend") resolveEncounter(true);
+  else if (a === "friend-leave") resolveEncounter(false);
+  else if (a === "mission-companion") chooseMission("companion");
+  else if (a === "mission-job") chooseMission("job");
+  else if (a === "mission-visit") chooseMission("visit");
+  else if (a === "mission-rest") chooseMission("rest");
+  else if (a === "mission-continue") chooseMission("continue");
+});
+const existing = load();
+if (existing && existing.phase !== "over") { state = existing; }
+render();
+if (state && state.phase === "plan") ensureWeather();
+window.__RR = { getState: () => state, getAlbum: () => album, getSettings: () => settings, getDraft: () => draft, audio: __RR_AUDIO, newRun, chooseTransport, chooseMission, resolveEncounter, costsFor, legCosts, companionFor, encounterFor, CRITTERS, nameBlocked, rollPetName, PET_NAME_POOLS, hashNum, seededWeather, travelEvent, get TOWNS(){ return TOWNS; }, ROUTES, townsFor, SAVE_KEY, ALBUM_KEY, SETTINGS_KEY,
+  setState: (s) => { state = s; save(); render(); } };
+</script>
+
+</body>
+</html>
