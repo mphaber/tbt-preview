@@ -875,6 +875,18 @@ function resolveEncounter(befriend){
   state.phase = "mission";
   save(); render();
 }
+function planRest(){
+  if (!state || state.phase !== "plan") return;
+  const restCost = petProfile() ? petProfile().restCost : 10;
+  const restEnergy = petProfile() ? petProfile().restEnergy : 26;
+  if (state.money - restCost <= 0) return;
+  playSfx("rest");
+  state.money -= restCost;
+  state.energy = clamp(state.energy + restEnergy, 0, 100);
+  state.morale = clamp(state.morale + 6, 0, 100);
+  logLine("Rested in " + TOWNS[state.leg].name + " before traveling: energy +" + restEnergy + ".");
+  save(); render();
+}
 function chooseMission(kind){
   if (!state || state.phase !== "mission") return;
   state.justCollected = null;
@@ -1181,6 +1193,7 @@ function render(){
     }
     if (state.companion) h += '<div class="card"><div class="wxnote">🧳 <b>' + state.companion.name + ' is riding this leg with you.</b> ' + benefitText(state.companion) + ' One limit: no bicycle with a passenger.</div></div>';
     h += '<div class="card"><h3>How will you travel?</h3>';
+    let anyEnabled = false, anyEnergyBlock = false;
     TRANSPORTS.forEach(t => {
       const isBus = t.id === "bus";
       const noBus = isBus && !from.bus;
@@ -1195,8 +1208,20 @@ function render(){
         if (c.money > state.money) { sub += " Not enough money."; disabled = "disabled"; }
         else if (c.energy >= state.energy) { sub += " That would leave you at zero energy."; disabled = "disabled"; }
       }
+      if (!disabled) anyEnabled = true;
+      if (c && c.energy >= state.energy) anyEnergyBlock = true;
       h += '<button class="choice act" data-action="travel-' + t.id + '" ' + disabled + '><span class="ic">' + t.icon + '</span><span class="tx">' + t.name + '<span class="sub">' + sub + '</span></span><span class="tag">' + tag + "</span></button>";
     });
+    if (state.weather && !anyEnabled && anyEnergyBlock) {
+      /* Safety net (playtest finding, Oct 31, 2026): never strand the
+         traveler in a menu. If every ride is blocked and energy is the
+         reason, resting right here is always offered. */
+      const restCost = petProfile() ? petProfile().restCost : 10;
+      const restEnergy = petProfile() ? petProfile().restEnergy : 26;
+      const canAfford = state.money - restCost > 0;
+      h += '<p class="small" style="margin-top:10px">Too worn out for every ride out of ' + from.name + '. Rest here first, then choose.</p>' +
+        '<button class="choice act" data-action="plan-rest" ' + (canAfford ? "" : "disabled") + '><span class="ic">🛏️</span><span class="tx">Rest here first<span class="sub">A real meal and a quiet ' + (state.pet ? "pet-friendly " : "") + 'room in ' + from.name + ', before you travel.' + (canAfford ? "" : " Not enough money to rest.") + '</span></span><span class="tag">Energy +' + restEnergy + '<span>$' + restCost + ' · morale +6</span></span></button>';
+    }
     h += '<div class="rowbtns"><button class="plain" data-action="sound">' + (settings.soundOn ? "Sound: on" : "Sound: off") + '</button>' +
       '<button class="plain" data-action="abandon">Abandon trip</button></div></div>';
   }
@@ -1283,6 +1308,7 @@ document.getElementById("app").addEventListener("click", (e) => {
   else if (a === "mission-visit") chooseMission("visit");
   else if (a === "mission-rest") chooseMission("rest");
   else if (a === "mission-continue") chooseMission("continue");
+  else if (a === "plan-rest") planRest();
 });
 const existing = load();
 if (existing && existing.phase !== "over") { state = existing; }
