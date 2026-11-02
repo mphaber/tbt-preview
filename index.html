@@ -117,6 +117,56 @@
   .fldlabel{font-weight:800; font-size:13px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin:12px 0 4px;}
   .txtin{width:100%; min-height:52px; font-size:17px; padding:10px 12px; border:2px solid var(--line); border-radius:12px; background:#fff; color:var(--ink);}
   .chiprow{display:flex; gap:8px; flex-wrap:wrap; margin:4px 0 6px;}
+  button.choice.compact{min-height:52px; padding:8px 12px; font-size:16px; margin-bottom:8px;}
+  button.choice.compact .sub{font-size:13px; margin-top:2px;}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .toolbar .plain{flex:1 1 0; min-height:50px; padding:8px 4px; font-size:15px; white-space:nowrap;}
+  .ovl{position:fixed; inset:0; background:rgba(31,41,34,.48); z-index:60; display:flex; align-items:flex-end; justify-content:center;}
+  .ovpanel{background:var(--card); width:100%; max-width:580px; max-height:92vh; overflow-y:auto; border-radius:18px 18px 0 0; padding:14px 14px 22px; box-shadow:0 -8px 34px rgba(0,0,0,.28);}
+  .ovhead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
+  .ovhead h3{font-size:18px; margin:0;}
+  .ovpanel .card{border:none; box-shadow:none; padding:0; margin:0; background:transparent;}
+  .chipbtn.sm{min-height:40px; padding:5px 10px; font-size:14.5px;}
+  .card.tight{padding:12px;}
+  .card.tight .fldlabel{margin-top:8px;}
+  .card.tight p{margin-bottom:6px;}
+  .card.tight .chiprow{gap:6px;}
+  .card.tight .txtin{min-height:46px; padding:8px 12px;}
+  .card.tight .plain{min-height:46px;}
+  .idgrid{display:flex; gap:10px;}
+  .idgrid > div{flex:1; min-width:0;}
+  @media (max-width:560px){ .card.tight{padding:11px;} .card.tight .fldlabel{margin-top:7px;} }
+  .petrow{display:flex; gap:8px; margin-bottom:6px;}
+  .pettile{flex:1; min-height:62px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:15px; font-weight:700; color:var(--ink); background:#f2ead6; border:2px solid var(--green); border-radius:12px; cursor:pointer; padding:6px 4px;}
+  .pettile .pic{font-size:23px; line-height:1.1;}
+  .pettile.sel{background:var(--green); color:#fff; border-color:var(--green-dark);}
+  @media (max-width:380px){
+    body{margin:4px;}
+    .wrap{padding:10px 10px 20px;}
+    .top{margin-bottom:8px;}
+    h1{font-size:23px;}
+    h2{margin-bottom:5px;}
+    .card{padding:10px;}
+    .card p{font-size:15px;}
+    .card p.small{font-size:12.5px;}
+    .fldlabel{font-size:12px;}
+    .chipbtn.sm{min-height:34px; padding:4px 8px; font-size:14px;}
+    .card.tight{padding:9px;}
+    .card.tight .fldlabel{margin-top:4px;}
+    .card.tight .txtin{min-height:40px;}
+    .card.tight .choice.compact{margin-bottom:4px;}
+    .petrow .pettile{min-height:50px;}
+    .top{margin-bottom:6px;}
+    .wrap{padding:8px 10px 12px;}
+    .petrow .pettile{min-height:54px;}
+    .pettile .pic{font-size:20px;}
+    .card.tight .txtin{min-height:42px; padding:7px 10px;}
+    button.choice.compact{padding:6px 10px;}
+    button.choice.compact .sub{font-size:12.5px;}
+    .toolbar{margin-top:6px;}
+    .toolbar .plain{min-height:46px; font-size:14px;}
+    footer.site{margin-top:12px; font-size:12.5px;}
+  }
   .chipbtn{min-height:48px; padding:9px 16px; font-size:16px; font-weight:700; background:#f2ead6; color:var(--ink); border:2px solid var(--green); border-radius:999px; cursor:pointer;}
   .chipbtn.sel{background:var(--green); color:#fff; border-color:var(--green-dark);}
   .choice.sel{border-color:var(--green-dark); background:#eef3df;}
@@ -285,12 +335,12 @@ function legsTotal(){ return TOWNS.length - 1; }
 function finishName(){ return TOWNS[TOWNS.length - 1].name; }
 function routeMiles(route){ return route.towns.reduce((a, t) => a + (t.dist || 0), 0); }
 function introRouteButtons(saved){
-  const tags = { bb:"Chain start · independent too", hv:"Independent", cv:"The connector" };
+  const tags = { bb:"Chain start", hv:"Independent", cv:"Connector" };
   return ["bb", "hv", "cv"].map((rid, i) => {
     const r = ROUTES[rid];
-    return '<button class="choice' + (!saved && i === 0 ? " primary" : "") + '" data-action="new-run" data-route="' + rid + '">' + r.name +
-      '<span class="sub">' + r.short + ". About " + routeMiles(r) + " miles, " + (r.towns.length - 1) + " legs, start with $" + r.startMoney + '.</span>' +
-      '<span class="tag">' + tags[rid] + "</span></button>";
+    return '<button class="choice compact' + (!saved && i === 0 ? " primary" : "") + '" data-action="new-run" data-route="' + rid + '">' + r.name +
+      '<span class="sub">' + r.short + '.</span>' +
+      '<span class="tag">' + tags[rid] + " · " + routeMiles(r) + " mi · " + (r.towns.length - 1) + " legs · $" + r.startMoney + "</span></button>";
   }).join("");
 }
 function albumsIntroHTML(){
@@ -1037,11 +1087,30 @@ function resourcesHTML(){
     '<div class="res"><div class="label">Energy</div><div class="value">' + state.energy + "</div>" + bar(state.energy) + "</div>" +
     '<div class="res"><div class="label">Morale</div><div class="value">' + state.morale + "</div>" + bar(state.morale) + "</div></div>";
 }
+/* In-window layers (one-window standard, Nov 2, 2026): the route map,
+   the postcard album, and settings open as layers over the current
+   screen, so every feature is reachable without scrolling the page. */
+let overlay = null;
+let overlayRoute = "bb";
+function overlayHTML(){
+  if (!overlay) return "";
+  let title = "", body = "";
+  if (overlay === "settings") { title = "Settings"; body = settingsHTML(); }
+  else if (overlay === "map") {
+    title = "Route map · Boston to Burlington";
+    body = '<div class="card">' + mapSVG() +
+      '<p class="small" style="margin-top:8px">How a trip works: check the live weather for the next town, choose how to travel, then take a job, make a visit, or rest when you stop. Each trip starts with its own stake, energy 90, and morale 85. If any one of the three runs out, that trip ends. The towns and people on these routes are portrayed as they are: neighbors, workers, guides, and friends.</p></div>';
+  } else if (overlay === "album") {
+    title = "Postcard album";
+    body = '<div class="chiprow" style="margin-bottom:10px">' + ["bb", "hv", "cv"].map(rid => '<button class="chipbtn sm' + (overlayRoute === rid ? " sel" : "") + '" data-action="ov-album-route" data-route="' + rid + '">' + ROUTES[rid].name + "</button>").join("") + "</div>" + albumHTML(overlayRoute, true);
+  }
+  return '<div class="ovl" data-action="ov-close"><div class="ovpanel" data-action="ov-panel"><div class="ovhead"><h3>' + title + '</h3><button class="plain" data-action="ov-close">Close</button></div>' + body + "</div></div>";
+}
 function settingsHTML(){
   const row = (key, label) => '<div class="setrow"><label for="set-' + key + '">' + label + '</label>' +
     '<input type="range" id="set-' + key + '" min="0" max="100" step="1" value="' + settings[key] + '" data-setting="' + key + '">' +
     '<span class="pct" id="pct-' + key + '">' + settings[key] + '%</span></div>';
-  return '<div class="card"><h3>Settings</h3>' +
+  return '<div class="card">' +
     '<div class="setrow"><label>Road music</label><button class="plain" data-action="music-toggle">' + (settings.musicOn ? "Music: on" : "Music: off") + '</button>' +
     '<span class="small">Gentle, and on by default. It starts with your first tap, which is a browser rule.</span></div>' +
     row("master", "Master volume") + row("music", "Music volume") + row("sfx", "Effects volume") +
@@ -1085,47 +1154,56 @@ function render(){
     const saved = load();
     app.innerHTML =
       '<div class="card mapcard"><div class="stampdeco"><div class="big">⛰️</div>USA</div>' +
-      '<h2>Town by Town</h2>' +
-      '<p style="font-style:italic; color:#7a6748; margin-top:-4px">Greetings from the road.</p>' +
-      '<p>Three routes, real weather, one traveler. Every route stands on its own, and they also chain: finish one and you can continue into the next with the same traveler and pet. Each trip starts with its own stake, energy 90, and morale 85. If any one of the three runs out, that trip ends.</p>' +
-      '<p class="town-note">Travel by car, bicycle, or bus where it runs. Along the way, pick up paying jobs, make friendly visits, or rest. Weather is checked live for the next town before you choose how to travel, because that is the choice that matters.</p>' +
-      '<p class="small">These lands are the homelands of the Abenaki, Pennacook, Massachusett, Lenape, Wappinger, Esopus, Mahican, and Mohawk peoples, whose communities are part of these places today. The towns and people on these routes are portrayed as they are: neighbors, workers, guides, and friends.</p>' +
-      (saved ? '<button class="choice primary" data-action="continue-run">Continue your trip<span class="sub">You left off in ' + (townsFor(saved.routeId || "bb", saved.dir || "n")[saved.leg] || {}).name + " with $" + saved.money + ", energy " + saved.energy + ", morale " + saved.morale + '.</span></button>' : "") +
+      '<h2>Town by Town <span style="font-size:13.5px; font-style:italic; color:#7a6748">· Greetings from the road.</span></h2>' +
+      '<p style="padding-right:60px">Three routes, real weather, one traveler. They stand alone, and they also chain.</p>' +
+      '<p class="small">These lands are the homelands of the Abenaki, Pennacook, Massachusett, Lenape, Wappinger, Esopus, Mahican, and Mohawk peoples, whose communities are part of these places today.</p>' +
+      (saved ? '<button class="choice compact primary" data-action="continue-run">Continue your trip<span class="sub">You left off in ' + (townsFor(saved.routeId || "bb", saved.dir || "n")[saved.leg] || {}).name + " with $" + saved.money + ", energy " + saved.energy + ", morale " + saved.morale + '.</span></button>' : "") +
       introRouteButtons(saved) +
-      '<div class="rowbtns"><button class="plain" data-action="sound">' + (settings.soundOn ? "Sound: on" : "Sound: off") + "</button></div></div>" +
-      '<div class="card"><h3>First route map</h3>' + mapSVG() + "</div>" +
-      albumsIntroHTML() + settingsHTML();
+      '<div class="toolbar">' +
+      '<button class="plain" data-action="ov-map">🗺️ Map</button>' +
+      '<button class="plain" data-action="ov-album">📬 Postcards</button>' +
+      '<button class="plain" data-action="ov-settings">⚙️ Settings</button>' +
+      "</div></div>" +
+      overlayHTML();
     return;
   }
   let h = "";
-  if (state.traveler && state.phase !== "setup") h += '<p class="small" style="margin:0 0 8px">🧳 <b>' + esc(state.traveler.name) + "</b> · " + esc(state.traveler.pronouns) + (petProfile() ? " · traveling with " + petName() + " the " + petProfile().kind : "") + "</p>";
-  h += resourcesHTML();
-  h += '<div class="card mapcard"><div class="stampdeco"><div class="big">⛰️</div>' + TOWNS[TOWNS.length - 1].state + '<br>USA</div>' +
-    '<div class="postmark">' + TOWNS[state.leg].state + ' MAIL<br>OCT 31</div>' + mapSVG() +
-    '<p class="small" style="margin-top:6px">Leg ' + Math.min(state.legsDone + 1, legsTotal()) + ' of ' + legsTotal() + '. Traveled ' + state.legsDone + ' of ' + legsTotal() + ' legs. Jobs done: ' + state.jobsDone + ". Visits: " + state.visitsDone + ".</p></div>";
+  if (state.phase !== "setup") {
+    if (state.traveler) h += '<p class="small" style="margin:0 0 8px">🧳 <b>' + esc(state.traveler.name) + "</b> · " + esc(state.traveler.pronouns) + (petProfile() ? " · traveling with " + petName() + " the " + petProfile().kind : "") + "</p>";
+    h += resourcesHTML();
+    h += '<div class="card mapcard"><div class="stampdeco"><div class="big">⛰️</div>' + TOWNS[TOWNS.length - 1].state + '<br>USA</div>' +
+      '<div class="postmark">' + TOWNS[state.leg].state + ' MAIL<br>OCT 31</div>' + mapSVG() +
+      '<p class="small" style="margin-top:6px">Leg ' + Math.min(state.legsDone + 1, legsTotal()) + ' of ' + legsTotal() + '. Traveled ' + state.legsDone + ' of ' + legsTotal() + ' legs. Jobs done: ' + state.jobsDone + ". Visits: " + state.visitsDone + ".</p></div>";
+  }
   if (state.phase === "setup") {
-    const chip = (kind, val, label) => '<button class="chipbtn' + (draft[kind] === val ? " sel" : "") + '" data-chip="' + kind + '" data-value="' + val + '">' + label + "</button>";
-    h += '<div class="card"><h2>Who is traveling?</h2>' +
-      '<p>Set yourself up first. Your name, gender, and pronouns are yours to set, and the game will use them and remember them for next time.</p>' +
+    const chip = (kind, val, label) => '<button class="chipbtn sm' + (draft[kind] === val ? " sel" : "") + '" data-chip="' + kind + '" data-value="' + val + '">' + label + "</button>";
+    const petDetail = draft.pet === "dog" ? "More heart, more costs. Morale +3/leg, visits +3. $3/leg food and supplies, rest $13. Muddy paws happen."
+      : draft.pet === "cat" ? "Calmer, lower costs. Morale +2/leg, visits +2, rest +30 energy. $2/leg food and litter, rest $12. Carrier escapes happen."
+      : draft.pet === "none" ? "Leaner, cheaper, quieter. Just you and the road."
+      : "Solo either way. A pet changes the math of the whole trip.";
+    h += '<div class="card tight"><h2>Who is traveling? <span style="font-size:13px; font-style:italic; color:#7a6748">· yours to set, remembered next time</span></h2>' +
       (state.setupError ? '<div class="eventbox"><b>One moment:</b> ' + state.setupError + "</div>" : "") +
       '<div class="fldlabel">Your name</div>' +
       '<input class="txtin" id="traveler-name" type="text" maxlength="30" placeholder="Traveler" value="' + esc(draft.name) + '">' +
-      '<div class="fldlabel">Gender</div><div class="chiprow">' +
+      '<div class="idgrid"><div><div class="fldlabel">Gender</div><div class="chiprow">' +
       chip("gender", "Woman", "Woman") + chip("gender", "Man", "Man") + chip("gender", "Nonbinary", "Nonbinary") + chip("gender", "custom", "My own words") + "</div>" +
       (draft.gender === "custom" ? '<input class="txtin" id="traveler-gender-custom" type="text" maxlength="30" placeholder="Describe your gender" value="' + esc(draft.genderCustom) + '">' : "") +
-      '<div class="fldlabel">Pronouns</div><div class="chiprow">' +
+      '</div><div><div class="fldlabel">Pronouns</div><div class="chiprow">' +
       chip("pronouns", "she/her", "she/her") + chip("pronouns", "he/him", "he/him") + chip("pronouns", "they/them", "they/them") + chip("pronouns", "custom", "My own words") + "</div>" +
       (draft.pronouns === "custom" ? '<input class="txtin" id="traveler-pronouns-custom" type="text" maxlength="30" placeholder="Your pronouns" value="' + esc(draft.pronounsCustom) + '">' : "") +
-      '<div class="fldlabel" style="margin-top:16px">And who else?</div>' +
-      '<p style="margin-top:2px">You travel solo either way. A pet changes the math of the whole trip. Pick one (or not), name them if you bring one, then start.</p>' +
-      '<button class="choice act' + (draft.pet === "dog" ? " sel" : "") + '" data-petpick="dog"><span class="ic">🐕</span><span class="tx">Bring a dog<span class="sub">Morale +3 every leg, visits warmer (+3). Drawbacks: $3 per leg for food and supplies, rest $13, and muddy paws happen.</span></span><span class="tag">More heart<span>more costs</span></span></button>' +
-      '<button class="choice act' + (draft.pet === "cat" ? " sel" : "") + '" data-petpick="cat"><span class="ic">🐈</span><span class="tx">Bring a cat<span class="sub">Morale +2 every leg, visits warmer (+2), and a professional napper: rest restores +30 energy. Drawbacks: $2 per leg for food and litter, rest $12, and carrier escapes happen.</span></span><span class="tag">Calmer<span>lower costs</span></span></button>' +
-      '<button class="choice act' + (draft.pet === "none" ? " sel" : "") + '" data-petpick="none"><span class="ic">🧭</span><span class="tx">Travel without a pet<span class="sub">Leaner, cheaper, quieter. Just you and the road.</span></span><span class="tag">Free<span>no extras</span></span></button>' +
+      '</div></div>' +
+      '<div class="fldlabel" style="margin-top:10px">And who else?</div>' +
+      '<div class="petrow">' +
+      '<button class="pettile' + (draft.pet === "dog" ? " sel" : "") + '" data-petpick="dog"><span class="pic">🐕</span>Dog</button>' +
+      '<button class="pettile' + (draft.pet === "cat" ? " sel" : "") + '" data-petpick="cat"><span class="pic">🐈</span>Cat</button>' +
+      '<button class="pettile' + (draft.pet === "none" ? " sel" : "") + '" data-petpick="none"><span class="pic">🧭</span>No pet</button>' +
+      "</div>" +
+      '<p class="small">' + petDetail + "</p>" +
       (draft.pet === "dog" || draft.pet === "cat" ? '<div class="fldlabel">Name your ' + draft.pet + '</div>' +
-        '<input class="txtin" id="pet-name" type="text" maxlength="24" value="' + esc(draft.petName) + '">' +
-        '<div class="rowbtns"><button class="plain" data-action="reroll-pet-name">🎲 Another suggestion</button></div>' +
-        '<p class="small">A suggestion is rolled for you. Keep it, roll another, or type any name you like. It is remembered for next trip.</p>' : "") +
-      '<button class="choice primary" data-action="start-trip">Start the trip<span class="sub">From ' + TOWNS[0].name + ', with $' + routeMeta().startMoney + ' and a plan to reach ' + finishName() + '.</span></button></div>';
+        '<div style="display:flex; gap:8px; align-items:stretch"><input class="txtin" id="pet-name" type="text" maxlength="24" value="' + esc(draft.petName) + '" style="flex:1">' +
+        '<button class="plain" data-action="reroll-pet-name">🎲 Reroll</button></div>' +
+        '<p class="small">Rolled for you: keep, reroll, or type your own.</p>' : "") +
+      '<button class="choice compact primary" data-action="start-trip">Start the trip<span class="sub">From ' + TOWNS[0].name + ' to ' + finishName() + ', with $' + routeMeta().startMoney + '.</span></button></div>';
   } else if (state.phase === "over") {
     const won = state.result === "win";
     h += '<div class="card result"><div class="big">' + (won ? "You made it to " + finishName() + "." : "The trip ends here.") + "</div>" +
@@ -1223,14 +1301,14 @@ function render(){
         '<button class="choice act" data-action="plan-rest" ' + (canAfford ? "" : "disabled") + '><span class="ic">🛏️</span><span class="tx">Rest here first<span class="sub">A real meal and a quiet ' + (state.pet ? "pet-friendly " : "") + 'room in ' + from.name + ', before you travel.' + (canAfford ? "" : " Not enough money to rest.") + '</span></span><span class="tag">Energy +' + restEnergy + '<span>$' + restCost + ' · morale +6</span></span></button>';
     }
     h += '<div class="rowbtns"><button class="plain" data-action="sound">' + (settings.soundOn ? "Sound: on" : "Sound: off") + '</button>' +
+      '<button class="plain" data-action="ov-settings">⚙️ Settings</button>' +
       '<button class="plain" data-action="abandon">Abandon trip</button></div></div>';
   }
-  h += albumHTML(state.routeId, true);
-  h += settingsHTML();
-  if (state.log.length) {
+  if (state.phase !== "setup") h += albumHTML(state.routeId, true);
+  if (state.log.length && state.phase !== "setup") {
     h += '<div class="card"><h3>Trip log</h3><ul class="log">' + state.log.map(l => "<li>" + l + "</li>").join("") + "</ul></div>";
   }
-  app.innerHTML = h;
+  app.innerHTML = h + overlayHTML();
 }
 document.getElementById("app").addEventListener("input", (e) => {
   if (e.target.id === "traveler-name") { draft.name = e.target.value; return; }
@@ -1309,6 +1387,12 @@ document.getElementById("app").addEventListener("click", (e) => {
   else if (a === "mission-rest") chooseMission("rest");
   else if (a === "mission-continue") chooseMission("continue");
   else if (a === "plan-rest") planRest();
+  else if (a === "ov-map") { overlay = "map"; render(); }
+  else if (a === "ov-album") { overlay = "album"; overlayRoute = (state && state.routeId) || "bb"; render(); }
+  else if (a === "ov-settings") { overlay = "settings"; render(); }
+  else if (a === "ov-album-route") { overlayRoute = btn.getAttribute("data-route") || "bb"; render(); }
+  else if (a === "ov-panel") { /* clicks inside a layer stay in the layer */ }
+  else if (a === "ov-close") { overlay = null; render(); }
 });
 const existing = load();
 if (existing && existing.phase !== "over") { state = existing; }
